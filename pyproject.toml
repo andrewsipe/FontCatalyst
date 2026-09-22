@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fontcatalyst"
+version = "1.1.5"
+description = "Font Catalyst — decompress WOFF/WOFF2 to TTF/OTF, then review and optionally repair"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [
+    { name = "Andrew Sipe" }
+]
+license = { text = "MIT" }
+dependencies = [
+    "fonttools>=4.40.0",
+    "rich>=13.0.0",
+    "brotli>=1.0.9",
+]
+
+[project.urls]
+Homepage = "https://github.com/andrewsipe/FontCatalyst"
+Documentation = "https://andrewsipe.github.io/FontCatalyst/"
+Repository = "https://github.com/andrewsipe/FontCatalyst"
+Changelog = "https://github.com/andrewsipe/FontCatalyst/blob/main/CHANGELOG.md"
+
+[project.scripts]
+fontcatalyst = "fontcatalyst.cli:main"
+
+[tool.setuptools]
+packages = ["fontcatalyst", "FontCore"]
+
+[tool.setuptools.package-dir]
+"fontcatalyst" = "fontcatalyst"
+"FontCore" = "FontCore"

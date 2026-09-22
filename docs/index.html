@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Font Catalyst docs</title>
+  <meta name="description" content="Decompress WOFF/WOFF2 to TTF/OTF, review, repair, and limited convert." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="brand" href="index.html">Font Catalyst <span>docs</span></a>
+      <nav class="nav" aria-label="Primary">
+        <a href="index.html" aria-current="page">Home</a>
+        <a href="flags.html">Flags</a>
+        <a href="safety.html">Safety</a>
+        <a href="convert.html">Convert</a>
+      </nav>
+      <a class="github-link" href="https://github.com/andrewsipe/FontCatalyst">GitHub</a>
+    </div>
+  </header>
+
+  <main>
+    <p class="meta">Documentation · v1.1.5</p>
+    <h1>Decompress, then look</h1>
+    <p class="lede">
+      <code>fontcatalyst</code> unwraps a WOFF or WOFF2 to the TTF or OTF stored inside it, then reports whether that file needs a repair this tool can do.
+    </p>
+
+    <div class="callout warn">
+      <strong>TTX is a repair.</strong> It runs only with <code>--repair</code>, and only when a table will not decompile. A healthy webfont is not recompiled.
+    </div>
+
+    <pre><code>pipx install "git+https://github.com/andrewsipe/FontCatalyst.git"
+fontcatalyst fonts/ -r -ct</code></pre>
+
+    <div class="card-grid">
+      <a class="card" href="flags.html">
+        <h2>Flag reference</h2>
+        <p>Recursive, <code>-c</code> / <code>-ct</code>, <code>--repair</code>, and recipes.</p>
+      </a>
+      <a class="card" href="safety.html">
+        <h2>Safety &amp; review</h2>
+        <p>Archive, quarantine, required tables, and what <code>--repair</code> will touch.</p>
+      </a>
+      <a class="card" href="convert.html">
+        <h2>Convert</h2>
+        <p>WOFF / WOFF2 wrap, and TTF to OTF with the fidelity warning.</p>
+      </a>
+      <a class="card" href="https://github.com/andrewsipe/FontCatalyst">
+        <h2>Repository</h2>
+        <p>README stays the front door; this site holds the detail.</p>
+      </a>
+    </div>
+
+    <p>Live flag wording: <code>fontcatalyst --help</code>.</p>
+  </main>
+
+  <footer class="site-footer">
+    <a href="https://github.com/andrewsipe/FontCatalyst">andrewsipe/FontCatalyst</a>
+    · static Pages site from the <code>docs/</code> folder on <code>main</code>
+  </footer>
+</body>
+</html>

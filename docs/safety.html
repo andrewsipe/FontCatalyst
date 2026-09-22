@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Safety · Font Catalyst</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="brand" href="index.html">Font Catalyst <span>docs</span></a>
+      <nav class="nav" aria-label="Primary">
+        <a href="index.html">Home</a>
+        <a href="flags.html">Flags</a>
+        <a href="safety.html" aria-current="page">Safety</a>
+        <a href="convert.html">Convert</a>
+      </nav>
+      <a class="github-link" href="https://github.com/andrewsipe/FontCatalyst">GitHub</a>
+    </div>
+  </header>
+
+  <main>
+    <p class="meta">Behavior</p>
+    <h1>Safety &amp; review</h1>
+    <p class="lede">By default the webfont stays put and a new SFNT is written beside it. <code>-c</code> and <code>-ct</code> empty a folder into sorted piles.</p>
+
+    <h2>With -c or -ct</h2>
+    <ul>
+      <li>Converted folder — the TTF or OTF (or a relocated SFNT that already passed)</li>
+      <li><code>_archive/</code> — the original WOFF, WOFF2, or pre-repair file</li>
+      <li><code>_quarantine/</code> — created only when a file could not be opened or rebuilt. The terminal line is the reason. An empty leftover from an earlier run is removed at the end of the next one.</li>
+    </ul>
+    <p>The terminal reports both moves for a webfont: <code>name.woff → _archive/name.woff</code>, then the written SFNT with its level.</p>
+
+    <h2>No overwrite</h2>
+    <p>If the destination name exists, Font Catalyst writes <code>name#1.ttf</code>, <code>name#2.ttf</code>, and so on.</p>
+
+    <h2>What the check looks at</h2>
+    <ul>
+      <li>File opens; every table decompiles</li>
+      <li>Required tables present (<code>cmap</code>, <code>head</code>, <code>hhea</code>, <code>hmtx</code>, <code>maxp</code>, <code>name</code>, <code>post</code>, <code>OS/2</code>, plus <code>glyf</code>/<code>loca</code> or <code>CFF</code>; <code>gvar</code> or <code>CFF2</code> when <code>fvar</code> is present)</li>
+      <li>Coverage / PairPos order would not change if sorted</li>
+      <li>Stored checksums (mismatch is a note, not a rewrite by itself)</li>
+    </ul>
+    <p>This is not Fontspector. Names, licensing, metrics, and hinting quality are out of scope.</p>
+
+    <h2>What <code>--repair</code> will do</h2>
+    <ul>
+      <li>Coverage out of glyph order, or unsorted PairPos — sorts them</li>
+      <li>A table that will not decompile — TTX rebuild; <code>ttx</code>'s own error if that also fails</li>
+      <li>Missing required tables — reported only; nothing invents them</li>
+    </ul>
+  </main>
+
+  <footer class="site-footer">
+    <a href="flags.html">← Flags</a>
+    · <a href="convert.html">Convert →</a>
+  </footer>
+</body>
+</html>

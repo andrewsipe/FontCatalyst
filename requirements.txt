@@ -1,0 +1,5 @@
+# Font Catalyst dependencies
+
+fonttools>=4.40.0
+rich>=13.0.0
+brotli>=1.0.9

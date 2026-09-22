@@ -1,0 +1,58 @@
+# Changelog
+
+## [1.1.5] - 2026-09-22
+
+### Added
+- GitHub Pages docs site and pipx install from the public repository.
+
+### Changed
+- README and `--help` docs hint point at
+  https://andrewsipe.github.io/FontCatalyst/
+
+## [1.1.4] - 2026-09-22
+
+### Changed
+- Decompressing a webfont reports both moves: the original into `_archive`
+  (with `-c` or `-ct`) and the TTF or OTF that was written.
+
+## [1.1.3] - 2026-09-22
+
+### Changed
+- Result lines color the level word: green good, orange questionable, red bad
+  or error. The rest of the line is dim so the level is easy to scan.
+
+## [1.1.2] - 2026-09-22
+
+### Added
+- The structural check fails when a required table is missing (`cmap`, `head`,
+  `hhea`, `hmtx`, `maxp`, `name`, `post`, `OS/2`, plus `glyf`/`loca` or `CFF`,
+  and `gvar` or `CFF2` when `fvar` is present). Nothing is rewritten; `--repair`
+  is not offered for that case.
+
+## [1.1.1] - 2026-09-22
+
+### Changed
+- `-c` / `-ct` create `_quarantine` only when a file fails. An empty one left
+  from a previous run is removed at the end of the next run.
+
+## [1.1.0] - 2026-09-22
+
+### Changed
+- The default command decompresses WOFF/WOFF2 to the embedded TTF or OTF and
+  prints a structural review. It no longer round-trips every font through TTX.
+- `-c` / `-ct` still empty the source folder: results, `_archive` (originals),
+  and `_quarantine` (hard failures, with the reason on the error line).
+- `--repair` applies only the fix the check named: coverage / PairPos sort, or
+  a TTX rebuild when a table will not decompile.
+
+### Added
+- `fontcatalyst convert --to woff|woff2|otf`. TTF to OTF warns that outlines
+  are refit and TrueType hinting is dropped. OTF to TTF is refused.
+
+## [1.0.0] - 2026-09-22
+
+### Added
+- **Font Catalyst** package (`fontcatalyst` CLI) — formerly TTX_Converter
+- Vendored slim FontCore + in-package Coverage / PairPos pre-sort
+- Rich `--help` with safety panel; local docs under `docs/`
+- `pyproject.toml` for pipx / pip install from this folder

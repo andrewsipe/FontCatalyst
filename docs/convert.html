@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Convert · Font Catalyst</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="brand" href="index.html">Font Catalyst <span>docs</span></a>
+      <nav class="nav" aria-label="Primary">
+        <a href="index.html">Home</a>
+        <a href="flags.html">Flags</a>
+        <a href="safety.html">Safety</a>
+        <a href="convert.html" aria-current="page">Convert</a>
+      </nav>
+      <a class="github-link" href="https://github.com/andrewsipe/FontCatalyst">GitHub</a>
+    </div>
+  </header>
+
+  <main>
+    <p class="meta">Secondary command</p>
+    <h1>Convert</h1>
+    <p class="lede">Container wrap and the uncommon TTF to OTF path. Separate from decompress + review.</p>
+
+    <pre><code>fontcatalyst convert --to woff2 fonts/
+fontcatalyst convert --to woff fonts/
+fontcatalyst convert --to otf Family.ttf</code></pre>
+
+    <h2>WOFF and WOFF2</h2>
+    <p>Lossless wrap of the SFNT that is already there. Outlines and hints stay the same. Uses fontTools (zlib WOFF, Brotli WOFF2).</p>
+
+    <h2>TTF to OTF</h2>
+    <div class="callout warn">
+      <strong>Fidelity warning.</strong> Quadratic outlines are refit as cubics (tolerance 0.001 em). TrueType instructions and related tables are dropped. This is not a cubic master.
+    </div>
+    <p>Overlaps are removed when skia-pathops is available. CFF is subroutinized when cffsubr is available. OTF to TTF is refused. Variable TTF to variable OTF is refused — decompress a variable webfont and keep the variable TTF.</p>
+
+    <h2>Same folder flags</h2>
+    <p><code>-c</code>, <code>-ct</code>, and <code>-o</code> work the same as on the default command.</p>
+  </main>
+
+  <footer class="site-footer">
+    <a href="safety.html">← Safety</a>
+    · <a href="index.html">Home</a>
+  </footer>
+</body>
+</html>

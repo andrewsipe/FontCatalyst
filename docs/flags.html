@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Flags · Font Catalyst</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="brand" href="index.html">Font Catalyst <span>docs</span></a>
+      <nav class="nav" aria-label="Primary">
+        <a href="index.html">Home</a>
+        <a href="flags.html" aria-current="page">Flags</a>
+        <a href="safety.html">Safety</a>
+        <a href="convert.html">Convert</a>
+      </nav>
+      <a class="github-link" href="https://github.com/andrewsipe/FontCatalyst">GitHub</a>
+    </div>
+  </header>
+
+  <main class="wide">
+    <p class="meta">Reference</p>
+    <h1>Flag reference</h1>
+    <p class="lede">Canonical wording: <code>fontcatalyst --help</code>.</p>
+
+    <table>
+      <thead>
+        <tr><th>Flag</th><th>Meaning</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>PATH…</code></td><td>Font files or directories (required)</td></tr>
+        <tr><td><code>-r, --recursive</code></td><td>Recurse into directories</td></tr>
+        <tr><td><code>-o, --output-dir DIR</code></td><td>Write results to DIR and leave sources in place</td></tr>
+        <tr><td><code>-c, --consolidate [DIR]</code></td><td>Per source folder: results in DIR (default <code>_converted</code>), originals in <code>_archive</code>; <code>_quarantine</code> only when a file fails</td></tr>
+        <tr><td><code>-ct, --consolidate-top [DIR]</code></td><td>One result folder (default <code>_converted_top</code>), with <code>_archive</code> beside it</td></tr>
+        <tr><td><code>--repair</code></td><td>Apply the single fix the check named (coverage / PairPos, or a TTX rebuild)</td></tr>
+        <tr><td><code>convert --to</code></td><td><code>woff</code>, <code>woff2</code>, or <code>otf</code></td></tr>
+        <tr><td><code>--version</code></td><td>Print version and exit</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Recipes</h2>
+    <pre><code>fontcatalyst fonts/ -r
+fontcatalyst fonts/ -r -ct
+fontcatalyst fonts/ -r -c
+fontcatalyst fonts/ -r --repair
+fontcatalyst convert --to woff2 fonts/
+fontcatalyst convert --to otf Family.ttf</code></pre>
+  </main>
+
+  <footer class="site-footer">
+    <a href="index.html">← Home</a>
+    · <a href="safety.html">Safety →</a>
+  </footer>
+</body>
+</html>
