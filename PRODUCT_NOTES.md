@@ -1,6 +1,6 @@
 # Product notes — Font Catalyst
 
-## Shipped (1.1.5)
+## Shipped (1.1.6)
 
 Default path is decompress + review. TTX is `--repair` when a table will not decompile.
 `-c` / `-ct` sort into converted, `_archive`, and `_quarantine` (quarantine only on failure).

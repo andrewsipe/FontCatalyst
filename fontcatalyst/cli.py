@@ -59,24 +59,27 @@ NOTES = [
 ]
 
 EXIT_CODES = {
+    # A per-file refusal (already CFF, variable TTF, missing glyf, etc.) is an
+    # "error" outcome on that one file; it does not change the process exit
+    # code. Only an empty file list does.
     "0": "finished (individual files may still be fail or error)",
-    "1": "no fonts found, or convert was asked to do something this tool refuses up front",
+    "1": "no TTF, OTF, WOFF, or WOFF2 files found",
 }
 
 
-def _shared(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("paths", nargs="+", metavar="PATH", help="font files or directories")
-    parser.add_argument("-r", "--recursive", action="store_true", help="recurse into directories")
-    parser.add_argument("-o", "--output-dir", type=Path, metavar="DIR", help="write results to DIR; leave sources in place")
-    parser.add_argument(
+def _shared(g_in: argparse._ArgumentGroup, g_out: argparse._ArgumentGroup) -> None:
+    g_in.add_argument("paths", nargs="+", metavar="PATH", help="font files or directories")
+    g_in.add_argument("-r", "--recursive", action="store_true", help="recurse into directories")
+    g_out.add_argument("-o", "--output-dir", type=Path, metavar="DIR", help="write results to DIR; leave sources in place")
+    g_out.add_argument(
         "-c", "--consolidate", nargs="?", const="_converted", metavar="DIR",
         help="per source folder: DIR for results, plus _archive and _quarantine (default DIR: _converted)",
     )
-    parser.add_argument(
+    g_out.add_argument(
         "-ct", "--consolidate-top", nargs="?", const="_converted_top", type=Path, metavar="DIR",
         help="one result folder, with _archive and _quarantine beside it (default: _converted_top)",
     )
-    parser.add_argument(
+    g_out.add_argument(
         "-j", "--jobs", type=int, default=1, metavar="N",
         help="reserved for parallel runs (this version processes files in order)",
     )
@@ -109,18 +112,22 @@ def build_ingest_parser() -> argparse.ArgumentParser:
         add_help=False,
         allow_abbrev=False,
     )
-    general = parser.add_argument_group("general")
-    general.add_argument("-h", "--help", **_help_kwargs(PANEL_MESSAGE, PANEL_ROWS))
-    general.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
-    ingest = parser.add_argument_group("input")
-    # arguments added via _shared on the parser itself so positionals work
-    _shared(parser)
-    ingest = parser.add_argument_group("review")
-    ingest.add_argument(
+    # Group *creation* order is display order (argparse), independent of when
+    # arguments are added to each group below. Input/output first, since
+    # they apply to every run; "general" (-h/--version) last, by convention.
+    g_in = parser.add_argument_group("input")
+    g_out = parser.add_argument_group("output and sorting")
+    g_review = parser.add_argument_group("review")
+    g_gen = parser.add_argument_group("general")
+
+    _shared(g_in, g_out)
+    g_review.add_argument(
         "--repair",
         action="store_true",
         help="apply the one repair named by the check (coverage sort, or a TTX rebuild)",
     )
+    g_gen.add_argument("-h", "--help", **_help_kwargs(PANEL_MESSAGE, PANEL_ROWS))
+    g_gen.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     return parser
 
 
@@ -142,15 +149,20 @@ def build_convert_parser() -> argparse.ArgumentParser:
         add_help=False,
         allow_abbrev=False,
     )
-    general = parser.add_argument_group("general")
-    general.add_argument("-h", "--help", **_help_kwargs(CONVERT_PANEL, CONVERT_ROWS))
-    general.add_argument(
+    g_in = parser.add_argument_group("input")
+    g_target = parser.add_argument_group("conversion target")
+    g_out = parser.add_argument_group("output and sorting")
+    g_gen = parser.add_argument_group("general")
+
+    _shared(g_in, g_out)
+    g_target.add_argument(
         "--to",
         required=True,
         choices=("woff", "woff2", "otf"),
         help="woff, woff2, or otf",
     )
-    _shared(parser)
+    g_gen.add_argument("-h", "--help", **_help_kwargs(CONVERT_PANEL, CONVERT_ROWS))
+    g_gen.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     return parser
 
 

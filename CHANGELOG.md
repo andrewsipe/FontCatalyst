@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.1.6] - 2026-09-22
+
+### Fixed
+- `fontcatalyst convert --version` now works (version was only on the top-level parser).
+- Shared flags land in named groups (`input`, `output and sorting`) instead of a bare
+  unlabeled options bucket; `--to` has its own `conversion target` group.
+- Exit-status help text: exit 1 is only “no matching files found” — per-file refusals
+  stay as error outcomes and still exit 0.
+
 ## [1.1.5] - 2026-09-22
 
 ### Added
