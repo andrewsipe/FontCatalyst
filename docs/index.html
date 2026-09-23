@@ -19,20 +19,21 @@
         <a href="flags.html">Flags</a>
         <a href="safety.html">Safety</a>
         <a href="convert.html">Convert</a>
+        <a href="ttx.html">TTX</a>
       </nav>
       <a class="github-link" href="https://github.com/andrewsipe/FontCatalyst">GitHub</a>
     </div>
   </header>
 
   <main>
-    <p class="meta">Documentation · v1.2.1</p>
+    <p class="meta">Documentation · v1.3.0</p>
     <h1>Decompress, then look</h1>
     <p class="lede">
       <code>fontcatalyst</code> unwraps a WOFF or WOFF2 to the TTF or OTF stored inside it, then reports whether that file needs a repair this tool can do.
     </p>
 
     <div class="callout warn">
-      <strong>TTX is a repair.</strong> It runs only with <code>--repair</code>, and only when a table will not decompile. A healthy webfont is not recompiled.
+      <strong>On this command, TTX is a repair.</strong> It runs only with <code>--repair</code>, and only when a table will not decompile. To dump a folder of fonts to XML, use <a href="ttx.html"><code>fontcatalyst ttx</code></a>.
     </div>
 
     <pre><code>pipx install "git+https://github.com/andrewsipe/FontCatalyst.git"
@@ -50,6 +51,10 @@ fontcatalyst fonts/ -r -ct</code></pre>
       <a class="card" href="convert.html">
         <h2>Convert</h2>
         <p>One target per run: lossless WOFF / WOFF2 wrap, or TTF to OTF with the fidelity warning.</p>
+      </a>
+      <a class="card" href="ttx.html">
+        <h2>TTX</h2>
+        <p>Dump a directory tree to <code>.ttx</code>. The <code>ttx</code> program itself takes one file.</p>
       </a>
       <a class="card" href="https://github.com/andrewsipe/FontCatalyst">
         <h2>Repository</h2>

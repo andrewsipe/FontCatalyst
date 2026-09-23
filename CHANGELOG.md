@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0] - 2026-09-22
+
+### Added
+- `fontcatalyst ttx` dumps a file or a directory tree to TTX. `-r` walks
+  subdirectories. The binary font is not rebuilt.
+- `-c` / `-ct` on that command default to `_ttx` and `_ttx_top`.
+
 ## [1.2.1] - 2026-09-22
 
 ### Added

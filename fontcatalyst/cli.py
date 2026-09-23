@@ -22,7 +22,8 @@ from FontCore.core_file_collector import iter_font_files
 
 from fontcatalyst import __version__
 from fontcatalyst.folders import common_parent, remove_if_empty, slots_for
-from fontcatalyst.pipeline import convert_file, emit, emit_outcome, ingest_file
+from fontcatalyst.pipeline import convert_file, emit, emit_outcome, ingest_file, ttx_file
+from fontcatalyst.repair import ttx_available
 from fontcatalyst.sfnt import INPUT_EXTENSIONS
 
 PROG = "fontcatalyst"
@@ -46,6 +47,7 @@ EXAMPLES = [
     ("fontcatalyst fonts/ -r -ct", "sort into _converted_top, _archive, _quarantine"),
     ("fontcatalyst fonts/ -r --repair", "also apply coverage fixes or a TTX rebuild"),
     ("fontcatalyst convert -2 woff2 fonts/", "lossless wrap as WOFF2"),
+    ("fontcatalyst ttx fonts/ -r", "dump every font in the tree to TTX"),
 ]
 
 NOTES = [
@@ -58,6 +60,7 @@ NOTES = [
 
 SUBCOMMANDS = {
     "convert": "One target per run: lossless WOFF/WOFF2 wrap, or TTF to OTF. fontcatalyst convert --help",
+    "ttx": "Dump a file or a directory tree to TTX. fontcatalyst ttx --help",
 }
 
 # What each convert target actually does. Shown under --to, and echoed on the result line.
@@ -91,17 +94,23 @@ EXIT_CODES = {
 }
 
 
-def _shared(g_in: argparse._ArgumentGroup, g_out: argparse._ArgumentGroup) -> None:
+def _shared(
+    g_in: argparse._ArgumentGroup,
+    g_out: argparse._ArgumentGroup,
+    *,
+    consolidate: str = "_converted",
+    consolidate_top: str = "_converted_top",
+) -> None:
     g_in.add_argument("paths", nargs="+", metavar="PATH", help="font files or directories")
     g_in.add_argument("-r", "--recursive", action="store_true", help="recurse into directories")
     g_out.add_argument("-o", "--output-dir", type=Path, metavar="DIR", help="write results to DIR; leave sources in place")
     g_out.add_argument(
-        "-c", "--consolidate", nargs="?", const="_converted", metavar="DIR",
-        help="per source folder: DIR for results, plus _archive and _quarantine (default DIR: _converted)",
+        "-c", "--consolidate", nargs="?", const=consolidate, metavar="DIR",
+        help=f"per source folder: DIR for results, plus _archive and _quarantine (default DIR: {consolidate})",
     )
     g_out.add_argument(
-        "-ct", "--consolidate-top", nargs="?", const="_converted_top", type=Path, metavar="DIR",
-        help="one result folder, with _archive and _quarantine beside it (default: _converted_top)",
+        "-ct", "--consolidate-top", nargs="?", const=consolidate_top, type=Path, metavar="DIR",
+        help=f"one result folder, with _archive and _quarantine beside it (default: {consolidate_top})",
     )
     g_out.add_argument(
         "-j", "--jobs", type=int, default=1, metavar="N",
@@ -227,6 +236,50 @@ def build_convert_parser() -> argparse.ArgumentParser:
     return parser
 
 
+TTX_PANEL = (
+    "Dumps each font to a .ttx file. The ttx command takes one file; this "
+    "subcommand takes a directory, and -r walks subdirectories. The binary "
+    "font is not rebuilt."
+)
+TTX_ROWS = (
+    ("Beside each source", "default"),
+    ("Per-folder sort", "-c, --consolidate [DIR]"),
+    ("One top-level sort", "-ct, --consolidate-top [DIR]"),
+)
+TTX_EXAMPLES = [
+    ("fontcatalyst ttx fonts/ -r", "dump every font in the tree"),
+    ("fontcatalyst ttx Family.ttf", "write Family.ttx beside the font"),
+    ("fontcatalyst ttx fonts/ -r -ct", "sort .ttx files into _ttx_top"),
+]
+TTX_NOTES = [
+    "This is a dump only. --repair is still the path that rebuilds a broken font through TTX.",
+    "A .ttx file already in the folder is left alone.",
+    "With -c or -ct, the .ttx file goes to the ttx folder and the original binary to _archive. "
+    "_quarantine is created only when ttx fails.",
+]
+
+
+def build_ttx_parser() -> argparse.ArgumentParser:
+    """Dump fonts to TTX. Same dispatch pattern as convert."""
+    parser = argparse.ArgumentParser(
+        prog=f"{PROG} ttx",
+        description="Dump TTF, OTF, WOFF, and WOFF2 files to TTX, including whole directories.",
+        add_help=False,
+        allow_abbrev=False,
+    )
+    g_in = parser.add_argument_group("input")
+    g_out = parser.add_argument_group("output and sorting")
+    g_gen = parser.add_argument_group("general")
+
+    _shared(g_in, g_out, consolidate="_ttx", consolidate_top="_ttx_top")
+    g_gen.add_argument(
+        "-h", "--help",
+        **_help_kwargs(TTX_PANEL, TTX_ROWS, examples=TTX_EXAMPLES, notes=TTX_NOTES),
+    )
+    g_gen.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
+    return parser
+
+
 def _collect(args) -> list[Path]:
     found = list(
         iter_font_files(
@@ -250,9 +303,9 @@ def _top_and_slots_args(args):
     return output_dir, args.consolidate, consolidate_top
 
 
-def _run(paths: list[Path], args, runner) -> int:
+def _run(paths: list[Path], args, runner, *, empty_message: str | None = None) -> int:
     if not paths:
-        emit("error", "No TTF, OTF, WOFF, or WOFF2 files found.")
+        emit("error", empty_message or "No TTF, OTF, WOFF, or WOFF2 files found.")
         return 1
     output_dir, consolidate, consolidate_top = _top_and_slots_args(args)
     if consolidate_top:
@@ -290,8 +343,8 @@ def main(argv: list[str] | None = None) -> None:
         os.chdir(Path.home())
 
     argv = list(sys.argv[1:] if argv is None else argv)
-    # `convert` is the only subcommand. Match it before the default parser so
-    # the word is not taken as a PATH.
+    # Subcommands are matched before the default parser so the word is not
+    # taken as a PATH. The default command stays bare (`fontcatalyst PATH`).
     if argv and argv[0] == "convert":
         parser = build_convert_parser()
         args = parser.parse_args(argv[1:])
@@ -301,6 +354,16 @@ def main(argv: list[str] | None = None) -> None:
             args,
             lambda path, slots: convert_file(path, slots, args.to),
         )
+        sys.exit(code)
+
+    if argv and argv[0] == "ttx":
+        parser = build_ttx_parser()
+        args = parser.parse_args(argv[1:])
+        if not ttx_available():
+            emit("error", "ttx command not found. Install fonttools so ttx is on PATH.")
+            sys.exit(1)
+        paths = _collect(args)
+        code = _run(paths, args, ttx_file)
         sys.exit(code)
 
     parser = build_ingest_parser()

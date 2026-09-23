@@ -18,6 +18,7 @@
         <a href="flags.html" aria-current="page">Flags</a>
         <a href="safety.html">Safety</a>
         <a href="convert.html">Convert</a>
+        <a href="ttx.html">TTX</a>
       </nav>
       <a class="github-link" href="https://github.com/andrewsipe/FontCatalyst">GitHub</a>
     </div>
@@ -40,6 +41,7 @@
         <tr><td><code>-ct, --consolidate-top [DIR]</code></td><td>One result folder (default <code>_converted_top</code>), with <code>_archive</code> beside it</td></tr>
         <tr><td><code>--repair</code></td><td>Apply the single fix the check named (coverage / PairPos, or a TTX rebuild)</td></tr>
         <tr><td><code>convert -2, --to</code></td><td>Subcommand. <code>woff</code> / <code>woff2</code> lossless wrap, or <code>otf</code> (TTF outlines to CFF)</td></tr>
+        <tr><td><code>ttx</code></td><td>Subcommand. Dump each font to <code>.ttx</code>. <code>-r</code> walks subdirectories. <code>-c</code> / <code>-ct</code> default to <code>_ttx</code> / <code>_ttx_top</code></td></tr>
         <tr><td><code>--version</code></td><td>Print version and exit</td></tr>
       </tbody>
     </table>
@@ -50,7 +52,8 @@ fontcatalyst fonts/ -r -ct
 fontcatalyst fonts/ -r -c
 fontcatalyst fonts/ -r --repair
 fontcatalyst convert -2 woff2 fonts/
-fontcatalyst convert -2 otf Family.ttf</code></pre>
+fontcatalyst convert -2 otf Family.ttf
+fontcatalyst ttx fonts/ -r</code></pre>
   </main>
 
   <footer class="site-footer">

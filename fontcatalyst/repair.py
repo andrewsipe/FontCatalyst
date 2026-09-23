@@ -18,12 +18,33 @@ def apply_structure(font: TTFont) -> int:
     return changed
 
 
+def dump_ttx(source: Path, dest: Path) -> None:
+    """Write `source` to `dest` as TTX XML. Raises RuntimeError on failure.
+
+    The binary font is not rebuilt. `ttx` itself accepts one file; callers
+    walk directories.
+    """
+    if not ttx_available():
+        raise RuntimeError(
+            "ttx command not found. Install fonttools so the ttx executable is on PATH."
+        )
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dump = subprocess.run(
+        ["ttx", "-q", "-o", str(dest), str(source)],
+        capture_output=True,
+        text=True,
+        timeout=300,
+    )
+    if dump.returncode != 0 or not dest.is_file():
+        raise RuntimeError(_ttx_failure("dump", dump.stderr))
+
+
 def rebuild_with_ttx(font: TTFont) -> TTFont:
     """Round-trip through TTX and return the rebuilt font.
 
     Raises RuntimeError with the ttx stderr (or a short reason) on failure.
     """
-    if not _ttx_on_path():
+    if not ttx_available():
         raise RuntimeError(
             "ttx command not found. Install fonttools so the ttx executable is on PATH."
         )
@@ -60,7 +81,7 @@ def rebuild_with_ttx(font: TTFont) -> TTFont:
         return rebuilt
 
 
-def _ttx_on_path() -> bool:
+def ttx_available() -> bool:
     try:
         subprocess.run(["ttx", "-h"], capture_output=True, check=True, timeout=5)
         return True

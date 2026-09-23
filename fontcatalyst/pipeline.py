@@ -10,7 +10,7 @@ import FontCore.core_console_styles as cs
 
 from fontcatalyst.convert import ConvertError, ttf_to_otf, wrap
 from fontcatalyst.folders import Slots, display_dest, ensure_dir, next_free, park
-from fontcatalyst.repair import apply_structure, rebuild_with_ttx
+from fontcatalyst.repair import apply_structure, dump_ttx, rebuild_with_ttx
 from fontcatalyst.review import checksums_fail, review_font
 from fontcatalyst.sfnt import (
     WEB_EXTENSIONS,
@@ -105,6 +105,36 @@ def ingest_file(path: Path, slots: Slots, repair: bool) -> Outcome:
         )
     finally:
         font.close()
+
+
+def ttx_file(path: Path, slots: Slots) -> Outcome:
+    """Dump one font to TTX XML. The binary is left as the source file."""
+    try:
+        ensure_dir(slots.output)
+        dest = next_free(slots.output / f"{path.stem}.ttx")
+        try:
+            dump_ttx(path, dest)
+        except Exception:
+            if dest.exists():
+                dest.unlink()
+            raise
+        written = display_dest(dest, path)
+        archived_path = park(path, slots.archive)
+        archived = display_dest(archived_path, path) if archived_path else None
+        return Outcome(
+            "pass",
+            path.name,
+            "good",
+            "Dumped the font to TTX. The binary was not rebuilt.",
+            archived,
+            written,
+        )
+    except Exception as exc:
+        quarantined = park(path, slots.quarantine)
+        where = display_dest(quarantined, path) if quarantined else None
+        return Outcome(
+            "error", path.name, "error", f"{type(exc).__name__}: {exc}", quarantined=where
+        )
 
 
 def convert_file(path: Path, slots: Slots, target: str) -> Outcome:
