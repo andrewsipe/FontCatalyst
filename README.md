@@ -79,5 +79,5 @@ fontcatalyst ttx fonts/ -r -ct      # .ttx files in _ttx_top/, originals in _arc
 ## Related
 
 - [FontFixer](https://github.com/andrewsipe/FontFixer) — OS/2, style, glyph, kern tidy-up  
-- [ebrium](https://github.com/andrewsipe/ebrium) — vertical metrics  
+- [Ebrium](https://github.com/andrewsipe/ebrium) — vertical metrics  
 - [Changelog](CHANGELOG.md)
