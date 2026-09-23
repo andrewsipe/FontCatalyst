@@ -125,16 +125,14 @@ def convert_file(path: Path, slots: Slots, target: str) -> Outcome:
             "error", path.name, "error", f"{type(exc).__name__}: {exc}", quarantined=where
         )
 
-    notes: list[str] = []
     try:
-        decompress(font)
         if target in {"woff", "woff2"}:
-            wrap(font, target)
+            notes = wrap(font, target)
             suffix = f".{target}"
         elif target == "otf":
             if is_cff(font):
                 raise ConvertError(
-                    f"already {outline_label(font)}; unwrap keeps that file"
+                    f"Already {outline_label(font)}. --to otf refits TrueType outlines only."
                 )
             notes = ttf_to_otf(font)
             suffix = ".otf"
@@ -224,7 +222,9 @@ def _emit_level(
     safe_detail = _escape_markup(outcome.detail)
     shown = subject if subject_is_markup else _escape_markup(subject)
     if badge == "error":
-        line = cs.StatusIndicator(badge).add_message(shown)
+        # The error template already inserts ": " before the explanation.
+        label = shown[:-1] if shown.endswith(":") else shown
+        line = cs.StatusIndicator(badge).add_message(label)
         line.explanation = f"[{style}]{outcome.level}.[/] [dim]{safe_detail}[/]"
     else:
         line = (

@@ -20,12 +20,35 @@ class ConvertError(Exception):
     """A conversion this tool will not perform, with the reason."""
 
 
-def wrap(font: TTFont, flavor: str) -> None:
-    """Set flavor to 'woff' or 'woff2'. Call save() after."""
+def wrap(font: TTFont, flavor: str) -> list[str]:
+    """Set flavor to 'woff' or 'woff2'. Call save() after.
+
+    Returns the clarification lines to print. The SFNT tables are not rebuilt.
+    """
     if flavor not in {"woff", "woff2"}:
         raise ConvertError(f"Unknown web flavor {flavor!r}.")
+    source = font.flavor
+    if source == flavor:
+        raise ConvertError(
+            f"Already {flavor}. The SFNT inside is unchanged; nothing to write."
+        )
+    variable = is_variable(font)
     decompress(font)
     font.flavor = flavor
+    if source in {"woff", "woff2"}:
+        notes = [
+            f"Recompressed the embedded SFNT from {source} to {flavor}. "
+            "Outlines and hints unchanged."
+        ]
+    else:
+        notes = [
+            f"Wrapped the SFNT as {flavor}. Outlines and hints unchanged."
+        ]
+    if variable and flavor == "woff":
+        notes.append(
+            "Variable font. WOFF2 is the container variable fonts are usually published in."
+        )
+    return notes
 
 
 def ttf_to_otf(font: TTFont) -> list[str]:

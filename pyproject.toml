@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fontcatalyst"
-version = "1.1.6"
+version = "1.2.0"
 description = "Font Catalyst — decompress WOFF/WOFF2 to TTF/OTF, then review and optionally repair"
 readme = "README.md"
 requires-python = ">=3.9"

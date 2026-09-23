@@ -10,6 +10,7 @@ from pathlib import Path
 import FontCore.core_console_styles as cs
 from FontCore.core_cli_help import (
     RichHelp,
+    choices_section,
     docs_section,
     examples_section,
     exit_status_section,
@@ -44,18 +45,41 @@ EXAMPLES = [
     ("fontcatalyst fonts/ -r", "unwrap webfonts and review"),
     ("fontcatalyst fonts/ -r -ct", "sort into _converted_top, _archive, _quarantine"),
     ("fontcatalyst fonts/ -r --repair", "also apply coverage fixes or a TTX rebuild"),
-    ("fontcatalyst convert --to woff2 fonts/", "compress SFNT files to WOFF2"),
-    ("fontcatalyst convert --to otf Family.ttf", "TTF to OTF, with a fidelity warning"),
+    ("fontcatalyst convert --to woff2 fonts/", "lossless wrap as WOFF2"),
 ]
 
 NOTES = [
     "A pass keeps the decompressed file. Questionable notes do not trigger a rewrite.",
     "A fail names one repair — structure (coverage / PairPos) or ttx (table would not decompile) — or lists required tables that are absent. Missing tables are not repaired.",
     "--repair runs only that repair. Healthy files are not sent through TTX.",
-    "convert --to otf refits TrueType outlines as CFF and drops TrueType hinting. "
-    "OTF to TTF is refused. Variable outline conversion is refused.",
     "With -c or -ct, successes move to the converted folder and originals to _archive. "
     "_quarantine is created only for a hard failure, and the error line includes the reason.",
+]
+
+SUBCOMMANDS = {
+    "convert": "One target per run: lossless WOFF/WOFF2 wrap, or TTF to OTF. fontcatalyst convert --help",
+}
+
+# What each convert target actually does. Shown under --to, and echoed on the result line.
+CONVERT_TARGETS = {
+    "woff": "Lossless zlib wrap of the SFNT already in the file. Outlines and hints stay.",
+    "woff2": "Lossless Brotli wrap of that same SFNT. Outlines and hints stay.",
+    "otf": "Lossy. Refits TrueType outlines as CFF and drops TrueType instructions.",
+}
+
+CONVERT_EXAMPLES = [
+    ("fontcatalyst convert --to woff2 fonts/", "lossless Brotli wrap"),
+    ("fontcatalyst convert --to woff fonts/", "lossless zlib wrap"),
+    ("fontcatalyst convert --to otf Family.ttf", "TTF to OTF; prints the fidelity warning"),
+]
+
+CONVERT_NOTES = [
+    "Each run writes one target. WOFF and WOFF2 only change the container.",
+    "A webfont is unwrapped first, then wrapped again. The SFNT tables are not rebuilt.",
+    "--to otf refits TrueType outlines as CFF (tolerance 0.001 em) and drops TrueType instructions. It is not a cubic master.",
+    "OTF to TTF is refused. Variable TTF to variable OTF is refused.",
+    "With -c or -ct, the new file goes to the converted folder and the original to _archive. "
+    "_quarantine is created only for a hard failure.",
 ]
 
 EXIT_CODES = {
@@ -85,16 +109,26 @@ def _shared(g_in: argparse._ArgumentGroup, g_out: argparse._ArgumentGroup) -> No
     )
 
 
-def _help_kwargs(panel_message: str, panel_rows: tuple[tuple[str, str], ...]):
+def _help_kwargs(
+    panel_message: str,
+    panel_rows: tuple[tuple[str, str], ...],
+    *,
+    examples: list[tuple[str, str]] = EXAMPLES,
+    notes: list[str] = NOTES,
+    extra_footer: tuple = (),
+    inline: dict | None = None,
+):
     console = cs.get_console()
     return dict(
         action=RichHelp,
         console=console,
         help="show this help message and exit",
         panel=safety_panel(panel_message, panel_rows),
+        inline=inline,
         footer=[
-            examples_section(EXAMPLES),
-            notes_section(NOTES),
+            examples_section(examples),
+            *extra_footer,
+            notes_section(notes),
             exit_status_section(EXIT_CODES),
             line_section("formats", "TTF, OTF, WOFF, WOFF2"),
             docs_section(DOCS_HINT),
@@ -126,26 +160,44 @@ def build_ingest_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="apply the one repair named by the check (coverage sort, or a TTX rebuild)",
     )
-    g_gen.add_argument("-h", "--help", **_help_kwargs(PANEL_MESSAGE, PANEL_ROWS))
+    g_gen.add_argument(
+        "-h", "--help",
+        **_help_kwargs(
+            PANEL_MESSAGE,
+            PANEL_ROWS,
+            extra_footer=(choices_section("subcommands", SUBCOMMANDS),),
+        ),
+    )
     g_gen.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     return parser
 
 
 CONVERT_PANEL = (
-    "Writes a new file in the requested flavor. TTF to OTF refits outlines and "
-    "drops TrueType hinting. OTF to TTF is not offered."
+    "Secondary command. Each run writes one target. WOFF and WOFF2 wrap the "
+    "SFNT that is already in the file. TTF to OTF refits outlines and drops "
+    "TrueType hinting."
 )
 CONVERT_ROWS = (
-    ("WOFF or WOFF2", "--to woff / --to woff2"),
+    ("Lossless wrap", "--to woff / --to woff2"),
     ("TTF to OTF", "--to otf"),
-    ("Same folder sort as ingest", "-c / -ct"),
+    ("Folder sort", "-c / -ct"),
 )
 
 
 def build_convert_parser() -> argparse.ArgumentParser:
+    """Subcommand parser. Dispatched from main() when argv starts with convert.
+
+    The default command stays bare (`fontcatalyst PATH`) because it owns the
+    PATH positional. Putting both on one argparse parser makes `convert` look
+    like a font path. This parser is still a real subcommand: its own groups,
+    --help, and --version.
+    """
     parser = argparse.ArgumentParser(
         prog=f"{PROG} convert",
-        description="Wrap an SFNT as WOFF or WOFF2, or convert a TTF to OTF.",
+        description=(
+            "Wrap an SFNT as WOFF or WOFF2, or convert TrueType outlines to CFF. "
+            "One target per run."
+        ),
         add_help=False,
         allow_abbrev=False,
     )
@@ -158,10 +210,19 @@ def build_convert_parser() -> argparse.ArgumentParser:
     g_target.add_argument(
         "--to",
         required=True,
-        choices=("woff", "woff2", "otf"),
-        help="woff, woff2, or otf",
+        choices=tuple(CONVERT_TARGETS),
+        help="woff or woff2 (lossless wrap), or otf (TTF outlines to CFF)",
     )
-    g_gen.add_argument("-h", "--help", **_help_kwargs(CONVERT_PANEL, CONVERT_ROWS))
+    g_gen.add_argument(
+        "-h", "--help",
+        **_help_kwargs(
+            CONVERT_PANEL,
+            CONVERT_ROWS,
+            examples=CONVERT_EXAMPLES,
+            notes=CONVERT_NOTES,
+            inline={"conversion target": choices_section("what --to does", CONVERT_TARGETS)},
+        ),
+    )
     g_gen.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     return parser
 
@@ -229,6 +290,8 @@ def main(argv: list[str] | None = None) -> None:
         os.chdir(Path.home())
 
     argv = list(sys.argv[1:] if argv is None else argv)
+    # `convert` is the only subcommand. Match it before the default parser so
+    # the word is not taken as a PATH.
     if argv and argv[0] == "convert":
         parser = build_convert_parser()
         args = parser.parse_args(argv[1:])

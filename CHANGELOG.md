@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.2.0] - 2026-09-22
+
+### Changed
+- `convert` is documented and helped as its own subcommand (`fontcatalyst convert --help`),
+  with a target table for what `--to` does.
+- WOFF and WOFF2 wraps print a clarification: the container changed, outlines and hints did not.
+  A file that is already that flavor is left in place.
+- A variable font wrapped as WOFF notes that WOFF2 is the usual container.
+- No all-formats distribution pack. Each convert run writes one target.
+
 ## [1.1.6] - 2026-09-22
 
 ### Fixed
