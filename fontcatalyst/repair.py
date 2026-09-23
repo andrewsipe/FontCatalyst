@@ -30,7 +30,7 @@ def dump_ttx(source: Path, dest: Path) -> None:
         )
     dest.parent.mkdir(parents=True, exist_ok=True)
     dump = subprocess.run(
-        ["ttx", "-q", "-o", str(dest), str(source)],
+        ["ttx", "-q", "--no-recalc-timestamp", "-o", str(dest), str(source)],
         capture_output=True,
         text=True,
         timeout=300,
@@ -57,7 +57,7 @@ def rebuild_with_ttx(font: TTFont) -> TTFont:
         ttx_path = folder / "source.ttx"
 
         dump = subprocess.run(
-            ["ttx", "-q", "-o", str(ttx_path), str(source)],
+            ["ttx", "-q", "--no-recalc-timestamp", "-o", str(ttx_path), str(source)],
             capture_output=True,
             text=True,
             timeout=300,
@@ -66,7 +66,7 @@ def rebuild_with_ttx(font: TTFont) -> TTFont:
             raise RuntimeError(_ttx_failure("dump", dump.stderr))
 
         compile_run = subprocess.run(
-            ["ttx", "-q", str(ttx_path)],
+            ["ttx", "-q", "--no-recalc-timestamp", str(ttx_path)],
             capture_output=True,
             text=True,
             timeout=300,

@@ -34,7 +34,11 @@ fontcatalyst ttx Family.ttf
 fontcatalyst ttx fonts/ -r -ct</code></pre>
 
     <h2>What it writes</h2>
-    <p>Each TTF, OTF, WOFF, or WOFF2 becomes a <code>.ttx</code> file beside it. The binary stays where it was. A <code>.ttx</code> file already in the folder is left alone. This command does not compile XML back into a font.</p>
+    <p>Each TTF, OTF, WOFF, or WOFF2 becomes a <code>.ttx</code> file beside it. The binary stays where it was. <code>ttx</code> is run with <code>--no-recalc-timestamp</code>, so the <code>modified</code> time written into the XML is the one already stored in the font. Two dumps of the same font match.</p>
+
+    <h2>Running it again</h2>
+    <p><code>-r</code> does not walk <code>_archive</code>, <code>_quarantine</code>, <code>_ttx</code>, or <code>_ttx_top</code>. A font that is still in the source folder, with a matching <code>.ttx</code> already written, is left alone. The font is not renamed, and a <code>#1</code> copy is not added. A different font that happens to share the stem still gets <code>#1</code>.</p>
+    <p>When those folders are the only fonts left, the line is: <code>Skipping _archive, _quarantine and _ttx, _ttx_top directories: No TTF, OTF, WOFF, or WOFF2 files found.</code></p>
 
     <div class="callout warn">
       <strong>Repair is separate.</strong> <code>--repair</code> on the default command is still the only path that rebuilds a font through TTX, and only when a table will not decompile.

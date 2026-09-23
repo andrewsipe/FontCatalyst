@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-
+import hashlib
+import shutil
+import tempfile
 from dataclasses import dataclass
+from pathlib import Path
 
 import FontCore.core_console_styles as cs
 
@@ -107,17 +109,43 @@ def ingest_file(path: Path, slots: Slots, repair: bool) -> Outcome:
         font.close()
 
 
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 def ttx_file(path: Path, slots: Slots) -> Outcome:
-    """Dump one font to TTX XML. The binary is left as the source file."""
+    """Dump one font to TTX XML. The binary is left as the source file.
+
+    If that XML is already there and matches this font, leave both files alone.
+    """
     try:
         ensure_dir(slots.output)
-        dest = next_free(slots.output / f"{path.stem}.ttx")
-        try:
-            dump_ttx(path, dest)
-        except Exception:
-            if dest.exists():
-                dest.unlink()
-            raise
+        canonical = slots.output / f"{path.stem}.ttx"
+        dest = canonical
+        if canonical.exists():
+            with tempfile.TemporaryDirectory(prefix="fontcatalyst_ttx_") as tmp:
+                fresh = Path(tmp) / canonical.name
+                dump_ttx(path, fresh)
+                if _sha256(fresh) == _sha256(canonical):
+                    return Outcome(
+                        "pass",
+                        path.name,
+                        "good",
+                        "TTX already matches this font. Left the font and the XML as they are.",
+                    )
+                dest = next_free(canonical)
+                shutil.move(str(fresh), dest)
+        else:
+            try:
+                dump_ttx(path, dest)
+            except Exception:
+                if dest.exists():
+                    dest.unlink()
+                raise
         written = display_dest(dest, path)
         archived_path = park(path, slots.archive)
         archived = display_dest(archived_path, path) if archived_path else None
@@ -201,10 +229,13 @@ def _escape_markup(text: str) -> str:
     return text.replace("[", "\\[")
 
 
-def emit(status: str, message: str) -> None:
+def emit(status: str, message: str, *, explanation: str | None = None) -> None:
     console = cs.get_console()
     kind = {"pass": "success", "fail": "warning", "error": "error"}.get(status, "info")
-    cs.StatusIndicator(kind).add_message(message).emit(console)
+    line = cs.StatusIndicator(kind).add_message(message)
+    if explanation:
+        line.with_explanation(explanation)
+    line.emit(console)
 
 
 def emit_outcome(outcome: Outcome) -> None:

@@ -253,8 +253,10 @@ TTX_EXAMPLES = [
 ]
 TTX_NOTES = [
     "This is a dump only. --repair is still the path that rebuilds a broken font through TTX.",
-    "A .ttx file already in the folder is left alone.",
-    "With -c or -ct, the .ttx file goes to the ttx folder and the original binary to _archive. "
+    "ttx is called with --no-recalc-timestamp, so head.modified stays the time stored in the font.",
+    "If the .ttx we would write is already there and matches this font, both files are left as they are.",
+    "-r does not walk _archive, _quarantine, or the ttx output folders from an earlier run.",
+    "With -c or -ct, a new .ttx goes to the ttx folder and the original binary to _archive. "
     "_quarantine is created only when ttx fails.",
 ]
 
@@ -288,7 +290,37 @@ def _collect(args) -> list[Path]:
             allowed_extensions=INPUT_EXTENSIONS,
         )
     )
-    return [Path(item) for item in found]
+    skip = _generated_dir_names(args)
+    return [Path(item) for item in found if not _inside_generated(Path(item), skip)]
+
+
+# Folders this tool creates. A later -r pass must not treat them as new sources.
+_GENERATED_DIR_NAMES = {
+    "_archive",
+    "_quarantine",
+    "_ttx",
+    "_ttx_top",
+    "_converted",
+    "_converted_top",
+}
+
+
+def _generated_dir_names(args) -> set[str]:
+    names = set(_GENERATED_DIR_NAMES)
+    consolidate = getattr(args, "consolidate", None)
+    if consolidate:
+        names.add(Path(str(consolidate)).name)
+    top = getattr(args, "consolidate_top", None)
+    if top:
+        name = Path(str(top)).name
+        if not name.startswith("_"):
+            name = "_" + name
+        names.add(name)
+    return names
+
+
+def _inside_generated(path: Path, names: set[str]) -> bool:
+    return any(part in names for part in path.parts)
 
 
 def _top_and_slots_args(args):
@@ -303,9 +335,20 @@ def _top_and_slots_args(args):
     return output_dir, args.consolidate, consolidate_top
 
 
-def _run(paths: list[Path], args, runner, *, empty_message: str | None = None) -> int:
+def _run(
+    paths: list[Path],
+    args,
+    runner,
+    *,
+    empty_message: str | None = None,
+    empty_explanation: str | None = None,
+) -> int:
     if not paths:
-        emit("error", empty_message or "No TTF, OTF, WOFF, or WOFF2 files found.")
+        emit(
+            "error",
+            empty_message or "No TTF, OTF, WOFF, or WOFF2 files found.",
+            explanation=empty_explanation,
+        )
         return 1
     output_dir, consolidate, consolidate_top = _top_and_slots_args(args)
     if consolidate_top:
@@ -363,7 +406,13 @@ def main(argv: list[str] | None = None) -> None:
             emit("error", "ttx command not found. Install fonttools so ttx is on PATH.")
             sys.exit(1)
         paths = _collect(args)
-        code = _run(paths, args, ttx_file)
+        code = _run(
+            paths,
+            args,
+            ttx_file,
+            empty_message="Skipping _archive, _quarantine and _ttx, _ttx_top directories",
+            empty_explanation="No TTF, OTF, WOFF, or WOFF2 files found.",
+        )
         sys.exit(code)
 
     parser = build_ingest_parser()

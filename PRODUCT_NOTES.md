@@ -1,11 +1,14 @@
 # Product notes — Font Catalyst
 
-## Shipped (1.3.0)
+## Shipped (1.3.1)
 
 Default path is decompress + review. TTX is `--repair` when a table will not decompile.
 `fontcatalyst ttx` dumps a directory tree to XML without rebuilding the binary.
 `-c` / `-ct` on that command use `_ttx` / `_ttx_top`.
-`-c` / `-ct` sort into converted, `_archive`, and `_quarantine` (quarantine only on failure).
+A second run does not duplicate a matching `.ttx` or rename the binary.
+`-r` skips `_archive`, `_quarantine`, and the ttx output folders.
+`ttx` is called with `--no-recalc-timestamp`.
+`-c` / `-ct` on the default command sort into converted, `_archive`, and `_quarantine` (quarantine only on failure).
 
 `convert` is a subcommand with one target per run (`-2` / `--to woff|woff2|otf`).
 WOFF/WOFF2 are lossless container wraps and say so. TTF to OTF prints the fidelity warning

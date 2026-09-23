@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.3.1] - 2026-09-22
+
+### Changed
+- `fontcatalyst ttx` leaves a font alone when the `.ttx` it would write already
+  matches that font. It does not add a `#1` copy or rename the binary.
+- `-r` does not walk `_archive`, `_quarantine`, or the ttx output folders.
+  A repeat that finds only those folders names them, then says no fonts were found.
+- `ttx` is invoked with `--no-recalc-timestamp`, so `head.modified` stays the
+  time stored in the font.
+
 ## [1.3.0] - 2026-09-22
 
 ### Added

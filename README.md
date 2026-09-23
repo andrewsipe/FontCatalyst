@@ -1,6 +1,6 @@
 # Font Catalyst
 
-**Version 1.3.0**
+**Version 1.3.1**
 
 Decompress WOFF and WOFF2 to the TTF or OTF that is already inside them, then report a short structural check. A TTX rebuild is a repair you ask for — not the way a webfont enters the collection.
 
@@ -69,7 +69,7 @@ OTF to TTF is refused. Variable TTF to variable OTF is refused. `-c` / `-ct` sor
 
 ## TTX
 
-`ttx` the program accepts one file. `fontcatalyst ttx` accepts a directory, and `-r` walks subdirectories. Each font is dumped to `.ttx`. The binary is not rebuilt. That stays on `--repair`, and only when a table will not decompile.
+`ttx` the program accepts one file. `fontcatalyst ttx` accepts a directory, and `-r` walks subdirectories, skipping `_archive`, `_quarantine`, and the ttx folders from an earlier run. Each new font is dumped to `.ttx`. If that XML is already there and matches the font, the font stays put and no `#1` file is written. The binary is not rebuilt. That stays on `--repair`, and only when a table will not decompile.
 
 ```bash
 fontcatalyst ttx fonts/ -r          # Family.ttx beside each font
