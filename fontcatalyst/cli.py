@@ -45,7 +45,7 @@ EXAMPLES = [
     ("fontcatalyst fonts/ -r", "unwrap webfonts and review"),
     ("fontcatalyst fonts/ -r -ct", "sort into _converted_top, _archive, _quarantine"),
     ("fontcatalyst fonts/ -r --repair", "also apply coverage fixes or a TTX rebuild"),
-    ("fontcatalyst convert --to woff2 fonts/", "lossless wrap as WOFF2"),
+    ("fontcatalyst convert -2 woff2 fonts/", "lossless wrap as WOFF2"),
 ]
 
 NOTES = [
@@ -68,15 +68,15 @@ CONVERT_TARGETS = {
 }
 
 CONVERT_EXAMPLES = [
-    ("fontcatalyst convert --to woff2 fonts/", "lossless Brotli wrap"),
-    ("fontcatalyst convert --to woff fonts/", "lossless zlib wrap"),
-    ("fontcatalyst convert --to otf Family.ttf", "TTF to OTF; prints the fidelity warning"),
+    ("fontcatalyst convert -2 woff2 fonts/", "lossless Brotli wrap"),
+    ("fontcatalyst convert -2 woff fonts/", "lossless zlib wrap"),
+    ("fontcatalyst convert -2 otf Family.ttf", "TTF to OTF; prints the fidelity warning"),
 ]
 
 CONVERT_NOTES = [
     "Each run writes one target. WOFF and WOFF2 only change the container.",
     "A webfont is unwrapped first, then wrapped again. The SFNT tables are not rebuilt.",
-    "--to otf refits TrueType outlines as CFF (tolerance 0.001 em) and drops TrueType instructions. It is not a cubic master.",
+    "-2 otf (--to otf) refits TrueType outlines as CFF (tolerance 0.001 em) and drops TrueType instructions. It is not a cubic master.",
     "OTF to TTF is refused. Variable TTF to variable OTF is refused.",
     "With -c or -ct, the new file goes to the converted folder and the original to _archive. "
     "_quarantine is created only for a hard failure.",
@@ -178,8 +178,8 @@ CONVERT_PANEL = (
     "TrueType hinting."
 )
 CONVERT_ROWS = (
-    ("Lossless wrap", "--to woff / --to woff2"),
-    ("TTF to OTF", "--to otf"),
+    ("Lossless wrap", "-2 woff / -2 woff2"),
+    ("TTF to OTF", "-2 otf"),
     ("Folder sort", "-c / -ct"),
 )
 
@@ -208,7 +208,7 @@ def build_convert_parser() -> argparse.ArgumentParser:
 
     _shared(g_in, g_out)
     g_target.add_argument(
-        "--to",
+        "-2", "--to",
         required=True,
         choices=tuple(CONVERT_TARGETS),
         help="woff or woff2 (lossless wrap), or otf (TTF outlines to CFF)",
@@ -220,7 +220,7 @@ def build_convert_parser() -> argparse.ArgumentParser:
             CONVERT_ROWS,
             examples=CONVERT_EXAMPLES,
             notes=CONVERT_NOTES,
-            inline={"conversion target": choices_section("what --to does", CONVERT_TARGETS)},
+            inline={"conversion target": choices_section("what -2 / --to does", CONVERT_TARGETS)},
         ),
     )
     g_gen.add_argument("--version", action="version", version=f"%(prog)s {__version__}")

@@ -132,7 +132,7 @@ def convert_file(path: Path, slots: Slots, target: str) -> Outcome:
         elif target == "otf":
             if is_cff(font):
                 raise ConvertError(
-                    f"Already {outline_label(font)}. --to otf refits TrueType outlines only."
+                    f"Already {outline_label(font)}. -2 otf refits TrueType outlines only."
                 )
             notes = ttf_to_otf(font)
             suffix = ".otf"

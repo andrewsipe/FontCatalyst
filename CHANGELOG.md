@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.2.1] - 2026-09-22
+
+### Added
+- `convert -2` is the short form of `convert --to`.
+
 ## [1.2.0] - 2026-09-22
 
 ### Changed

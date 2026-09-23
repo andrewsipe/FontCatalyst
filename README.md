@@ -1,6 +1,6 @@
 # Font Catalyst
 
-**Version 1.2.0**
+**Version 1.2.1**
 
 Decompress WOFF and WOFF2 to the TTF or OTF that is already inside them, then report a short structural check. A TTX rebuild is a repair you ask for — not the way a webfont enters the collection.
 
@@ -52,15 +52,15 @@ Opens the file, decompiles tables, checks Coverage / PairPos order, stored check
 
 ## Convert
 
-`convert` is a separate subcommand. Each run writes one target. There is no all-formats distribution pack.
+`convert` is a separate subcommand. `-2` is `--to`. Each run writes one target. There is no all-formats distribution pack.
 
 ```bash
-fontcatalyst convert --to woff2 fonts/     # lossless Brotli wrap
-fontcatalyst convert --to woff fonts/      # lossless zlib wrap
-fontcatalyst convert --to otf Family.ttf   # TTF outlines to CFF
+fontcatalyst convert -2 woff2 fonts/       # lossless Brotli wrap
+fontcatalyst convert -2 woff fonts/        # lossless zlib wrap
+fontcatalyst convert -2 otf Family.ttf     # TTF outlines to CFF
 ```
 
-| `--to` | What you get |
+| `-2` / `--to` | What you get |
 |--------|----------------|
 | `woff`, `woff2` | The same SFNT, in a new container. Outlines and hints stay. The result line says so. |
 | `otf` | TrueType outlines refit as CFF. TrueType instructions are dropped. Warned every time. |

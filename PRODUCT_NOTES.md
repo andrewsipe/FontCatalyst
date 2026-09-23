@@ -1,11 +1,11 @@
 # Product notes — Font Catalyst
 
-## Shipped (1.2.0)
+## Shipped (1.2.1)
 
 Default path is decompress + review. TTX is `--repair` when a table will not decompile.
 `-c` / `-ct` sort into converted, `_archive`, and `_quarantine` (quarantine only on failure).
 
-`convert` is a subcommand with one target per run (`--to woff|woff2|otf`).
+`convert` is a subcommand with one target per run (`-2` / `--to woff|woff2|otf`).
 WOFF/WOFF2 are lossless container wraps and say so. TTF to OTF prints the fidelity warning
 (qu2cu, overlap removal, CFF). OTF to TTF and variable outline conversion are refused.
 The all-formats distribution pack (labeled folders of every flavor) is out of scope.

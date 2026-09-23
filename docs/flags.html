@@ -39,7 +39,7 @@
         <tr><td><code>-c, --consolidate [DIR]</code></td><td>Per source folder: results in DIR (default <code>_converted</code>), originals in <code>_archive</code>; <code>_quarantine</code> only when a file fails</td></tr>
         <tr><td><code>-ct, --consolidate-top [DIR]</code></td><td>One result folder (default <code>_converted_top</code>), with <code>_archive</code> beside it</td></tr>
         <tr><td><code>--repair</code></td><td>Apply the single fix the check named (coverage / PairPos, or a TTX rebuild)</td></tr>
-        <tr><td><code>convert --to</code></td><td>Subcommand. <code>woff</code> / <code>woff2</code> lossless wrap, or <code>otf</code> (TTF outlines to CFF)</td></tr>
+        <tr><td><code>convert -2, --to</code></td><td>Subcommand. <code>woff</code> / <code>woff2</code> lossless wrap, or <code>otf</code> (TTF outlines to CFF)</td></tr>
         <tr><td><code>--version</code></td><td>Print version and exit</td></tr>
       </tbody>
     </table>
@@ -49,8 +49,8 @@
 fontcatalyst fonts/ -r -ct
 fontcatalyst fonts/ -r -c
 fontcatalyst fonts/ -r --repair
-fontcatalyst convert --to woff2 fonts/
-fontcatalyst convert --to otf Family.ttf</code></pre>
+fontcatalyst convert -2 woff2 fonts/
+fontcatalyst convert -2 otf Family.ttf</code></pre>
   </main>
 
   <footer class="site-footer">

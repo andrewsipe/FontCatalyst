@@ -26,15 +26,15 @@
   <main>
     <p class="meta">Subcommand</p>
     <h1>Convert</h1>
-    <p class="lede">One target per run, separate from decompress + review. The result line states what happened to the outlines.</p>
+    <p class="lede">One target per run, separate from decompress + review. <code>-2</code> is <code>--to</code>. The result line states what happened to the outlines.</p>
 
-    <pre><code>fontcatalyst convert --to woff2 fonts/
-fontcatalyst convert --to woff fonts/
-fontcatalyst convert --to otf Family.ttf</code></pre>
+    <pre><code>fontcatalyst convert -2 woff2 fonts/
+fontcatalyst convert -2 woff fonts/
+fontcatalyst convert -2 otf Family.ttf</code></pre>
 
     <table>
       <thead>
-        <tr><th><code>--to</code></th><th>Result</th></tr>
+        <tr><th><code>-2</code> / <code>--to</code></th><th>Result</th></tr>
       </thead>
       <tbody>
         <tr><td><code>woff</code></td><td>Lossless zlib wrap. Outlines and hints stay. A variable font adds a note that WOFF2 is the usual container.</td></tr>
