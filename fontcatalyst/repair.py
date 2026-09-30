@@ -77,7 +77,7 @@ def rebuild_with_ttx(font: TTFont) -> TTFont:
         produced = _find_sfnt(ttx_path.with_suffix(""))
         if produced is None:
             raise RuntimeError("ttx compile finished without a .ttf or .otf.")
-        rebuilt = TTFont(produced, lazy=False)
+        rebuilt = TTFont(produced, lazy=False, recalcTimestamp=False)
         return rebuilt
 
 

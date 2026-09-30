@@ -12,8 +12,12 @@ INPUT_EXTENSIONS = SFNT_EXTENSIONS | WEB_EXTENSIONS
 
 
 def load_font(path: Path) -> TTFont:
-    """Open a font. Raises fontTools / OSError with a message on failure."""
-    return TTFont(path, lazy=False)
+    """Open a font. Raises fontTools / OSError with a message on failure.
+
+    head.modified stays the time stored in the file. A later save does not
+    rewrite it to the moment the file was processed.
+    """
+    return TTFont(path, lazy=False, recalcTimestamp=False)
 
 
 def is_cff(font: TTFont) -> bool:

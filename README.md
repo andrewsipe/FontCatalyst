@@ -1,6 +1,6 @@
 # Font Catalyst
 
-**Version 1.3.1**
+**Version 1.3.5**
 
 Decompress WOFF and WOFF2 to the TTF or OTF that is already inside them, then report a short structural check. A TTX rebuild is a repair you ask for — not the way a webfont enters the collection.
 
@@ -11,11 +11,13 @@ Decompress WOFF and WOFF2 to the TTF or OTF that is already inside them, then re
 Preferred: [pipx](https://pipx.pypa.io/):
 
 ```bash
-pipx install "git+https://github.com/andrewsipe/FontCatalyst.git"
+pipx install "fontcatalyst[otf] @ git+https://github.com/andrewsipe/FontCatalyst.git"
 # later: pipx upgrade fontcatalyst
 ```
 
-Or from a clone: `pipx install .` / `pip install -e .`
+`[otf]` installs skia-pathops and cffsubr, used only by `convert -2 otf`. Overlap removal keeps crossing contours from painting as holes. Subroutinization makes the CFF smaller. If either step cannot run, the conversion still writes the font. The plain install, without `[otf]`, does the refit and skips those two steps. The extra needs Python 3.10+.
+
+Or from a clone: `pipx install '.[otf]'` / `pip install -e '.[otf]'`
 
 Requires Python 3.9+. Formats: TTF, OTF, WOFF, WOFF2 (Brotli is installed with the package).
 
@@ -62,10 +64,10 @@ fontcatalyst convert -2 otf Family.ttf     # TTF outlines to CFF
 
 | `-2` / `--to` | What you get |
 |--------|----------------|
-| `woff`, `woff2` | The same SFNT, in a new container. Outlines and hints stay. The result line says so. |
+| `woff`, `woff2` | The same SFNT, in a new container. Outlines and hints stay. `head.modified` stays the time stored in the source. |
 | `otf` | TrueType outlines refit as CFF. TrueType instructions are dropped. Warned every time. |
 
-OTF to TTF is refused. Variable TTF to variable OTF is refused. `-c` / `-ct` sort that one target the same way as the default command.
+OTF to TTF is refused. Variable TTF to variable OTF is refused. A file that is already an OTF is skipped, not reported as an error. `-c` / `-ct` sort that one target the same way as the default command.
 
 ## TTX
 

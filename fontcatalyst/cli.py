@@ -78,8 +78,10 @@ CONVERT_EXAMPLES = [
 
 CONVERT_NOTES = [
     "Each run writes one target. WOFF and WOFF2 only change the container.",
-    "A webfont is unwrapped first, then wrapped again. The SFNT tables are not rebuilt.",
+    "A webfont is unwrapped first, then wrapped again. The SFNT tables are not rebuilt. head.modified stays the time stored in the source.",
     "-2 otf (--to otf) refits TrueType outlines as CFF (tolerance 0.001 em) and drops TrueType instructions. It is not a cubic master.",
+    "Overlap removal (skia-pathops) and CFF subroutinization (cffsubr) run with that refit. "
+    "If either step cannot run, the conversion still writes the font and the line says what was skipped.",
     "OTF to TTF is refused. Variable TTF to variable OTF is refused.",
     "With -c or -ct, the new file goes to the converted folder and the original to _archive. "
     "_quarantine is created only for a hard failure.",
@@ -255,7 +257,7 @@ TTX_NOTES = [
     "This is a dump only. --repair is still the path that rebuilds a broken font through TTX.",
     "ttx is called with --no-recalc-timestamp, so head.modified stays the time stored in the font.",
     "If the .ttx we would write is already there and matches this font, both files are left as they are.",
-    "-r does not walk _archive, _quarantine, or the ttx output folders from an earlier run.",
+    "-r does not walk _archive, _quarantine, or the ttx output folders nested under the folder you passed. A folder you name directly is still processed.",
     "With -c or -ct, a new .ttx goes to the ttx folder and the original binary to _archive. "
     "_quarantine is created only when ttx fails.",
 ]
@@ -291,7 +293,8 @@ def _collect(args) -> list[Path]:
         )
     )
     skip = _generated_dir_names(args)
-    return [Path(item) for item in found if not _inside_generated(Path(item), skip)]
+    explicit = [Path(p).expanduser().resolve() for p in args.paths]
+    return [Path(item) for item in found if not _inside_generated(Path(item), skip, explicit)]
 
 
 # Folders this tool creates. A later -r pass must not treat them as new sources.
@@ -319,8 +322,22 @@ def _generated_dir_names(args) -> set[str]:
     return names
 
 
-def _inside_generated(path: Path, names: set[str]) -> bool:
-    return any(part in names for part in path.parts)
+def _inside_generated(path: Path, names: set[str], explicit: list[Path]) -> bool:
+    """True when a font sits inside an output folder this tool created.
+
+    The folder the user passed is not output. Only generated names nested
+    under that request are skipped, so a later -r does not reprocess
+    _archive or _converted from an earlier run.
+    """
+    resolved = path.resolve()
+    for root in explicit:
+        base = root if root.is_dir() else root.parent
+        try:
+            relative = resolved.relative_to(base)
+        except ValueError:
+            continue
+        return any(part in names for part in relative.parts)
+    return any(part in names for part in resolved.parts)
 
 
 def _top_and_slots_args(args):
@@ -356,7 +373,7 @@ def _run(
             "pass",
             f"Sorting into {consolidate_top.name} and _archive.",
         )
-    counts = {"pass": 0, "fail": 0, "error": 0}
+    counts = {"pass": 0, "skip": 0, "fail": 0, "error": 0}
     quarantine_dirs: set[Path] = set()
     for path in paths:
         slots = slots_for(
@@ -372,10 +389,13 @@ def _run(
         emit_outcome(outcome)
     for folder in quarantine_dirs:
         remove_if_empty(folder)
-    emit(
-        "pass",
-        f"Done. pass {counts['pass']}, fail {counts['fail']}, error {counts['error']}.",
-    )
+    summary = f"pass {counts['pass']}, fail {counts['fail']}, error {counts['error']}"
+    if counts["skip"]:
+        summary = (
+            f"pass {counts['pass']}, skipped {counts['skip']}, "
+            f"fail {counts['fail']}, error {counts['error']}"
+        )
+    emit("pass", f"Done. {summary}.")
     return 0
 
 

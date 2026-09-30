@@ -26,7 +26,7 @@
   </header>
 
   <main>
-    <p class="meta">Documentation · v1.3.1</p>
+    <p class="meta">Documentation · v1.3.5</p>
     <h1>Decompress, then look</h1>
     <p class="lede">
       <code>fontcatalyst</code> unwraps a WOFF or WOFF2 to the TTF or OTF stored inside it, then reports whether that file needs a repair this tool can do.
@@ -36,7 +36,7 @@
       <strong>On this command, TTX is a repair.</strong> It runs only with <code>--repair</code>, and only when a table will not decompile. To dump a folder of fonts to XML, use <a href="ttx.html"><code>fontcatalyst ttx</code></a>.
     </div>
 
-    <pre><code>pipx install "git+https://github.com/andrewsipe/FontCatalyst.git"
+    <pre><code>pipx install "fontcatalyst[otf] @ git+https://github.com/andrewsipe/FontCatalyst.git"
 fontcatalyst fonts/ -r -ct</code></pre>
 
     <div class="card-grid">
@@ -50,7 +50,7 @@ fontcatalyst fonts/ -r -ct</code></pre>
       </a>
       <a class="card" href="convert.html">
         <h2>Convert</h2>
-        <p>One target per run: lossless WOFF / WOFF2 wrap, or TTF to OTF with the fidelity warning.</p>
+        <p>One target per run. WOFF and WOFF2 wrap the font. TTF to OTF refits outlines; the <code>[otf]</code> install also removes overlaps and subroutinizes.</p>
       </a>
       <a class="card" href="ttx.html">
         <h2>TTX</h2>

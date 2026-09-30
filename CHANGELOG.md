@@ -1,5 +1,34 @@
 # Changelog
 
+## [1.3.5] - 2026-09-30
+
+### Changed
+- Saves keep `head.modified` at the time stored in the source font.
+  `head.checkSumAdjustment` is still recalculated.
+
+## [1.3.4] - 2026-09-30
+
+### Fixed
+- A folder you pass directly is processed even when its name is `_converted`,
+  `_archive`, `_ttx`, or another output name. Those names are still skipped
+  when `-r` finds them nested under a broader folder.
+
+## [1.3.3] - 2026-09-30
+
+### Added
+- The `otf` extra installs skia-pathops and cffsubr for `convert -2 otf`.
+  Overlap removal and CFF subroutinization run when those packages are present.
+  A contour that overlap removal leaves without an on-curve point is given an
+  explicit one before the cubic refit, so that case still converts.
+  A failure in either step is undone, and the conversion still writes the font.
+
+## [1.3.2] - 2026-09-30
+
+### Changed
+- A font that is already the convert target (an OTF asked for `--to otf`, or a
+  webfont already in the requested flavor) is skipped. The file stays put, and
+  the line is not an error.
+
 ## [1.3.1] - 2026-09-22
 
 ### Changed

@@ -1,5 +1,23 @@
 # Product notes — Font Catalyst
 
+## Shipped (1.3.5)
+
+Saves do not rewrite `head.modified`. The checksum adjustment is still updated.
+
+## Shipped (1.3.4)
+
+A path you pass is read even when the folder is named `_converted` or `_archive`.
+Those names are skipped only when `-r` finds them nested under a broader folder.
+
+## Shipped (1.3.3)
+
+`convert -2 otf` removes overlaps with skia-pathops and subroutinizes with cffsubr
+when the `otf` extra is installed. Either step can fail without discarding the font.
+
+## Shipped (1.3.2)
+
+`convert` skips a file that is already the requested target instead of reporting an error.
+
 ## Shipped (1.3.1)
 
 Default path is decompress + review. TTX is `--repair` when a table will not decompile.

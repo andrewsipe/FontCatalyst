@@ -10,7 +10,7 @@ from pathlib import Path
 
 import FontCore.core_console_styles as cs
 
-from fontcatalyst.convert import ConvertError, ttf_to_otf, wrap
+from fontcatalyst.convert import ConvertError, NothingToDo, ttf_to_otf, wrap
 from fontcatalyst.folders import Slots, display_dest, ensure_dir, next_free, park
 from fontcatalyst.repair import apply_structure, dump_ttx, rebuild_with_ttx
 from fontcatalyst.review import checksums_fail, review_font
@@ -19,7 +19,6 @@ from fontcatalyst.sfnt import (
     decompress,
     is_cff,
     load_font,
-    outline_label,
     sfnt_suffix,
 )
 
@@ -189,9 +188,7 @@ def convert_file(path: Path, slots: Slots, target: str) -> Outcome:
             suffix = f".{target}"
         elif target == "otf":
             if is_cff(font):
-                raise ConvertError(
-                    f"Already {outline_label(font)}. -2 otf refits TrueType outlines only."
-                )
+                raise NothingToDo("Already OTF. No conversion necessary.")
             notes = ttf_to_otf(font)
             suffix = ".otf"
         else:
@@ -205,6 +202,8 @@ def convert_file(path: Path, slots: Slots, target: str) -> Outcome:
         archived = display_dest(archived_path, path) if archived_path else None
         detail = " ".join(notes)
         return Outcome("pass", path.name, "good", detail, archived, written)
+    except NothingToDo as exc:
+        return Outcome("skip", path.name, "unchanged", str(exc))
     except ConvertError as exc:
         return Outcome("error", path.name, "error", str(exc))
     except Exception as exc:
@@ -249,6 +248,11 @@ def emit_outcome(outcome: Outcome) -> None:
         cs.StatusIndicator("error").add_message(
             cs.fmt_change(outcome.name, outcome.quarantined)
         ).with_explanation(_escape_markup(outcome.detail)).emit(console)
+        return
+    if outcome.status == "skip":
+        cs.StatusIndicator("skipped").add_message(
+            _escape_markup(outcome.name)
+        ).add_message(_escape_markup(outcome.detail), style="dim").emit(console)
         return
     if outcome.written and outcome.archived:
         _emit_level(outcome, subject=outcome.written, console=console)

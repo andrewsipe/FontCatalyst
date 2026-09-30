@@ -45,13 +45,15 @@ fontcatalyst convert -2 otf Family.ttf</code></pre>
     </table>
 
     <h2>WOFF and WOFF2</h2>
-    <p>The container changes. The SFNT inside does not. A webfont is unwrapped first, then wrapped in the target flavor. If the file is already that flavor, Font Catalyst writes nothing and says so.</p>
+    <p>The container changes. The SFNT inside does not. A webfont is unwrapped first, then wrapped in the target flavor.</p>
+    <p>A file that is already the requested flavor is skipped, not reported as an error. <code>head.modified</code> stays the time stored in the source. <code>head.checkSumAdjustment</code> is recalculated because the file bytes changed. WOFF2 may set <code>head</code> flag bit 11 to record its glyf/loca transform, and it drops an empty <code>DSIG</code> stub.</p>
 
     <h2>TTF to OTF</h2>
     <div class="callout warn">
       <strong>Fidelity warning.</strong> Quadratic outlines are refit as cubics (tolerance 0.001 em). TrueType instructions and related tables are dropped. This is not a cubic master. The warning is printed on every file.
     </div>
-    <p>Overlaps are removed when skia-pathops is available. CFF is subroutinized when cffsubr is available. An existing CFF font is left alone. Variable TTF to variable OTF is refused — decompress a variable webfont and keep the variable TTF. OTF to TTF is refused.</p>
+    <p>The <code>[otf]</code> install runs two further steps. skia-pathops removes overlapping contours before the refit, so a CFF rasterizer does not knock a crossing out. An implied on-curve point left by that step is made explicit before the cubic refit. cffsubr then shares repeated pieces of the CFF, which makes the file smaller and does not change the picture. If either step is missing or fails, that step is undone and the conversion still writes the font. The result line says what was skipped. <code>head.modified</code> stays the time stored in the source.</p>
+    <p>An existing CFF font is left alone and reported as skipped: it is already an OTF, so no conversion is necessary. Variable TTF to variable OTF is refused. OTF to TTF is refused.</p>
 
     <h2>Folder flags</h2>
     <p><code>-c</code>, <code>-ct</code>, and <code>-o</code> place that one target the same way as on the default command. A run does not emit a set of formats into labeled distribution folders.</p>
