@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.6] - 2026-11-20
+
+### Changed
+- Vendored FontCore refreshed to v0.2.0 (see `FontCore/VENDOR.md`). A filename
+  containing square brackets is no longer read as a console style tag.
+- The vendored copy is now produced by FontCore's `tools/vendor_fontcore.py`,
+  with the module list declared under `[tool.fontcore-vendor]` in `pyproject.toml`.
+
 ## [1.3.5] - 2026-09-30
 
 ### Changed

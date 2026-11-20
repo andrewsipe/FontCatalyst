@@ -1,1 +1,4 @@
-# Core module for font processing utilities
+"""Vendored FontCore subset used by fontcatalyst. Managed by tools/vendor_fontcore.py."""
+
+__fontcore_version__ = "0.2.0"
+__fontcore_source__ = "v0.2.0"
