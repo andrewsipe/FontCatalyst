@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.3.7] - 2026-11-21
+
+### Changed
+- Vendored FontCore refreshed to v0.3.0 (console wording and counts: "1 file" / "3 files", `Finished`, one `Proceed?`). No change to what the tool does to fonts.
+
 ## [1.3.6] - 2026-11-20
 
 ### Changed
