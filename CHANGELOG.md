@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.3.9] - 2026-11-22
+
+### Changed
+- Vendored FontCore refreshed to v0.4.0. The modules this tool uses are byte-for-byte the same as in 0.3.1, so nothing changes in behavior; only the version stamp in `FontCore/VENDOR.md` moves.
+
 ## [1.3.8] - 2026-11-21
 
 ### Fixed
