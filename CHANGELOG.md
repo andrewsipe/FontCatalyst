@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+- Install and update instructions use `uv tool install` / `uv tool upgrade` (pipx is no longer mentioned).
+
 ## [1.3.9] - 2026-11-22
 
 ### Changed

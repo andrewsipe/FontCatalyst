@@ -8,16 +8,16 @@ Decompress WOFF and WOFF2 to the TTF or OTF that is already inside them, then re
 
 ## Install
 
-Preferred: [pipx](https://pipx.pypa.io/):
+Preferred: [uv](https://docs.astral.sh/uv/):
 
 ```bash
-pipx install "fontcatalyst[otf] @ git+https://github.com/andrewsipe/FontCatalyst.git"
-# later: pipx upgrade fontcatalyst
+uv tool install "fontcatalyst[otf] @ git+https://github.com/andrewsipe/FontCatalyst.git"
+# later: uv tool upgrade fontcatalyst
 ```
 
 `[otf]` installs skia-pathops and cffsubr, used only by `convert -2 otf`. Overlap removal keeps crossing contours from painting as holes. Subroutinization makes the CFF smaller. If either step cannot run, the conversion still writes the font. The plain install, without `[otf]`, does the refit and skips those two steps. The extra needs Python 3.10+.
 
-Or from a clone: `pipx install '.[otf]'` / `pip install -e '.[otf]'`
+From a clone: `uv tool install --editable '.[otf]'` (edits take effect immediately).
 
 Requires Python 3.9+. Formats: TTF, OTF, WOFF, WOFF2 (Brotli is installed with the package).
 
