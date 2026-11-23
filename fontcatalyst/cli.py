@@ -105,6 +105,10 @@ def _shared(
 ) -> None:
     g_in.add_argument("paths", nargs="+", metavar="PATH", help="font files or directories")
     g_in.add_argument("-r", "--recursive", action="store_true", help="recurse into directories")
+    g_in.add_argument(
+        "--include-generated", action="store_true",
+        help="also process fonts inside folders from an earlier run (_converted, _archive, _ttx, ...)",
+    )
     g_out.add_argument("-o", "--output-dir", type=Path, metavar="DIR", help="write results to DIR; leave sources in place")
     g_out.add_argument(
         "-c", "--consolidate", nargs="?", const=consolidate, metavar="DIR",
@@ -294,7 +298,15 @@ def _collect(args) -> list[Path]:
     )
     skip = _generated_dir_names(args)
     explicit = [Path(p).expanduser().resolve() for p in args.paths]
-    return [Path(item) for item in found if not _inside_generated(Path(item), skip, explicit)]
+    if getattr(args, "include_generated", False):
+        args._skipped_generated = []
+        return [Path(item) for item in found]
+    kept, skipped = [], []
+    for item in found:
+        (skipped if _inside_generated(Path(item), skip, explicit) else kept).append(Path(item))
+    args._skipped_generated = skipped  # _run says so, instead of a bare "no files found"
+    args._generated_names = skip
+    return kept
 
 
 # Folders this tool creates. A later -r pass must not treat them as new sources.
@@ -360,6 +372,22 @@ def _run(
     empty_message: str | None = None,
     empty_explanation: str | None = None,
 ) -> int:
+    skipped = getattr(args, "_skipped_generated", [])
+    names = sorted(
+        {part for p in skipped for part in p.parts if part in getattr(args, "_generated_names", ())}
+    )
+
+    def fonts(n: int) -> str:
+        return f"{n} font" + ("" if n == 1 else "s")
+
+    if not paths and skipped:
+        emit(
+            "error",
+            f"No fonts to process: all {fonts(len(skipped))} found are inside folders from an earlier run"
+            f" ({', '.join(names)}).",
+            explanation="Name that folder itself, or add --include-generated to process them.",
+        )
+        return 1
     if not paths:
         emit(
             "error",
@@ -367,6 +395,12 @@ def _run(
             explanation=empty_explanation,
         )
         return 1
+    if skipped:
+        emit(
+            "info",
+            f"Skipped {fonts(len(skipped))} inside folders from an earlier run ({', '.join(names)}).",
+            explanation="Add --include-generated to include them.",
+        )
     output_dir, consolidate, consolidate_top = _top_and_slots_args(args)
     if consolidate_top:
         emit(

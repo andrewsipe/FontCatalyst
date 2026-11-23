@@ -3,6 +3,14 @@
 ## [Unreleased]
 
 ### Changed
+- When every font found sits inside a folder from an earlier run (`_converted`, `_archive`, `_quarantine`, `_ttx`, `_converted_top`, `_ttx_top`, or the folder you named with `-c` or `-ct`), FontCatalyst now says so and names the folders, instead of "No TTF, OTF, WOFF, or WOFF2 files found". When only some fonts are skipped, it says how many. The fonts are still skipped on purpose, so a second `-r` pass does not process its own output.
+
+### Added
+- `--include-generated`: also process fonts inside those folders. Naming one of them directly (for example `PATH/_converted`) already worked.
+
+## [Unreleased]
+
+### Changed
 - Install and update instructions use `uv tool install` / `uv tool upgrade` (pipx is no longer mentioned).
 
 ## [1.3.9] - 2026-11-22
