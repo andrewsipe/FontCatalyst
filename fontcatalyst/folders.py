@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -104,11 +106,60 @@ def ensure_dir(path: Path) -> None:
     path.mkdir(parents=True, exist_ok=True)
 
 
-def remove_if_empty(path: Path | None) -> None:
-    """Drop a directory that has no files. Leaves a folder that contains anything."""
+def remove_if_empty(path: Path | None, *, ignore_hidden_files: bool = False) -> None:
+    """Drop a directory that has no files. Leaves a folder that contains anything.
+
+    With `ignore_hidden_files`, a folder holding only dot files (.DS_Store) counts as empty.
+    """
     if path is None or not path.is_dir():
         return
+    if ignore_hidden_files:
+        leftovers = [p for p in path.iterdir()]
+        if all(p.is_file() and p.name.startswith(".") for p in leftovers):
+            for p in leftovers:
+                p.unlink()
     try:
         next(path.iterdir())
     except StopIteration:
         path.rmdir()
+
+
+def collect_earlier_runs(
+    roots: list[Path],
+    *,
+    results_dest: Path,
+    archive_dest: Path,
+    quarantine_dest: Path,
+    results_names: set[str],
+) -> Counter:
+    """Gather what earlier -c runs left under `roots` into the -ct folders, without converting anything again.
+
+    Files in a results folder (_converted, or _ttx for TTX runs) go to `results_dest`, files in `_archive` to
+    `archive_dest`, files in `_quarantine` to `quarantine_dest`. The emptied folders are removed. The -ct
+    folders themselves are never read from. Returns how many files went to each destination folder.
+    """
+    dests = {name: results_dest for name in results_names}
+    dests["_archive"] = archive_dest
+    dests["_quarantine"] = quarantine_dest
+    protected = [d.resolve() for d in (results_dest, archive_dest, quarantine_dest)]
+    found: list[Path] = []
+    for root in roots:
+        if not root.is_dir():
+            continue
+        for dirpath, dirnames, _ in os.walk(root):
+            here = Path(dirpath).resolve()
+            if any(here == p or p in here.parents for p in protected):
+                dirnames[:] = []
+                continue
+            if here.name in dests:
+                found.append(here)
+                dirnames[:] = []
+    moved: Counter = Counter()
+    for folder in found:
+        dest = dests[folder.name]
+        for item in sorted(folder.iterdir()):
+            if item.is_file() and not item.name.startswith("."):
+                park(item, dest)
+                moved[dest.name] += 1
+        remove_if_empty(folder, ignore_hidden_files=True)
+    return moved

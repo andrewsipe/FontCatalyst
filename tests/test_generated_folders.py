@@ -77,3 +77,81 @@ def test_a_folder_with_no_fonts_still_gets_the_plain_message(tmp_path):
 
 def test_the_help_lists_the_flag():
     assert "--include-generated" in flat(run("-h"))
+
+
+# ---- -ct gathers the folders an earlier -c run made --------------------------------------------------------
+
+def make_woff(path: Path) -> Path:
+    from fontTools.ttLib import TTFont
+
+    ttf = make(path.with_suffix(".ttf"))
+    font = TTFont(ttf)
+    font.flavor = "woff"
+    font.save(str(path))
+    ttf.unlink()
+    return path
+
+
+def listing(root: Path):
+    return sorted(str(p.relative_to(root)) for p in root.rglob("*") if p.is_file() and p.name != ".DS_Store")
+
+
+def two_families(tmp_path):
+    for fam in ("Normal", "Wide"):
+        for style in ("Regular", "Bold"):
+            make_woff(tmp_path / fam / f"{fam}-{style}.woff")
+
+
+def test_ct_after_c_gathers_everything_without_converting_twice(tmp_path):
+    two_families(tmp_path)
+    assert run("-c", "-r", tmp_path).returncode == 0
+    result = run("-ct", "-r", tmp_path)
+    out = flat(result)
+    assert result.returncode == 0, out
+    assert listing(tmp_path) == [
+        "_archive/Normal-Bold.woff", "_archive/Normal-Regular.woff", "_archive/Wide-Bold.woff", "_archive/Wide-Regular.woff",
+        "_converted_top/Normal-Bold.ttf", "_converted_top/Normal-Regular.ttf", "_converted_top/Wide-Bold.ttf", "_converted_top/Wide-Regular.ttf",
+    ]
+    assert "Collected 8 fonts" in out and "#1" not in out
+    # the emptied folders from the first pass are gone
+    assert not (tmp_path / "Normal" / "_converted").exists() and not (tmp_path / "Wide" / "_archive").exists()
+
+
+def test_ct_gathers_earlier_folders_and_converts_new_files_in_one_run(tmp_path):
+    two_families(tmp_path)
+    run("-c", "-r", tmp_path)
+    make_woff(tmp_path / "Extra" / "Extra-Regular.woff")
+    result = run("-ct", "-r", tmp_path)
+    assert result.returncode == 0, flat(result)
+    files = listing(tmp_path)
+    assert "_converted_top/Extra-Regular.ttf" in files and "_archive/Extra-Regular.woff" in files
+    assert len([f for f in files if f.startswith("_converted_top/")]) == 5
+    assert not [f for f in files if "#" in f]
+
+
+def test_a_second_ct_pass_changes_nothing(tmp_path):
+    two_families(tmp_path)
+    run("-c", "-r", tmp_path)
+    run("-ct", "-r", tmp_path)
+    before = listing(tmp_path)
+    run("-ct", "-r", tmp_path)
+    assert listing(tmp_path) == before
+
+
+def test_c_still_leaves_earlier_folders_alone(tmp_path):
+    two_families(tmp_path)
+    run("-c", "-r", tmp_path)
+    before = listing(tmp_path)
+    run("-c", "-r", tmp_path)
+    assert listing(tmp_path) == before
+
+
+def test_ttx_ct_after_ttx_c_gathers_the_ttx_folders(tmp_path):
+    for fam in ("Normal", "Wide"):
+        make(tmp_path / fam / f"{fam}-Regular.ttf")
+    assert run("ttx", "-c", "-r", tmp_path).returncode == 0
+    result = run("ttx", "-ct", "-r", tmp_path)
+    assert result.returncode == 0, flat(result)
+    files = listing(tmp_path)
+    assert "_ttx_top/Normal-Regular.ttx" in files and "_ttx_top/Wide-Regular.ttx" in files
+    assert not (tmp_path / "Normal" / "_ttx").exists()

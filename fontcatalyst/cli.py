@@ -21,7 +21,7 @@ from FontCore.core_cli_help import (
 from FontCore.core_file_collector import iter_font_files
 
 from fontcatalyst import __version__
-from fontcatalyst.folders import common_parent, remove_if_empty, slots_for
+from fontcatalyst.folders import collect_earlier_runs, common_parent, remove_if_empty, slots_for
 from fontcatalyst.pipeline import convert_file, emit, emit_outcome, ingest_file, ttx_file
 from fontcatalyst.repair import ttx_available
 from fontcatalyst.sfnt import INPUT_EXTENSIONS
@@ -107,7 +107,7 @@ def _shared(
     g_in.add_argument("-r", "--recursive", action="store_true", help="recurse into directories")
     g_in.add_argument(
         "--include-generated", action="store_true",
-        help="also process fonts inside folders from an earlier run (_converted, _archive, _ttx, ...)",
+        help="also process fonts inside folders from an earlier run, _archive originals included (they are converted again)",
     )
     g_out.add_argument("-o", "--output-dir", type=Path, metavar="DIR", help="write results to DIR; leave sources in place")
     g_out.add_argument(
@@ -170,6 +170,7 @@ def build_ingest_parser() -> argparse.ArgumentParser:
     g_gen = parser.add_argument_group("general")
 
     _shared(g_in, g_out)
+    parser.set_defaults(earlier_results_name="_converted")
     g_review.add_argument(
         "--repair",
         action="store_true",
@@ -222,6 +223,7 @@ def build_convert_parser() -> argparse.ArgumentParser:
     g_gen = parser.add_argument_group("general")
 
     _shared(g_in, g_out)
+    parser.set_defaults(earlier_results_name="_converted")
     g_target.add_argument(
         "-2", "--to",
         required=True,
@@ -280,6 +282,7 @@ def build_ttx_parser() -> argparse.ArgumentParser:
     g_gen = parser.add_argument_group("general")
 
     _shared(g_in, g_out, consolidate="_ttx", consolidate_top="_ttx_top")
+    parser.set_defaults(earlier_results_name="_ttx")
     g_gen.add_argument(
         "-h", "--help",
         **_help_kwargs(TTX_PANEL, TTX_ROWS, examples=TTX_EXAMPLES, notes=TTX_NOTES),
@@ -372,6 +375,29 @@ def _run(
     empty_message: str | None = None,
     empty_explanation: str | None = None,
 ) -> int:
+    output_dir, consolidate, consolidate_top = _top_and_slots_args(args)
+    gathered = 0
+    if consolidate_top is not None and not output_dir:
+        # -ct is the "bring it all to the top" pass: gather what earlier -c runs left, without converting again
+        parent = consolidate_top.parent
+        results_names = {getattr(args, "earlier_results_name", "_converted")}
+        if args.consolidate:
+            results_names.add(Path(str(args.consolidate)).name)
+        moved = collect_earlier_runs(
+            [Path(p).expanduser().resolve() for p in args.paths],
+            results_dest=consolidate_top,
+            archive_dest=parent / "_archive",
+            quarantine_dest=parent / "_quarantine",
+            results_names=results_names,
+        )
+        gathered = sum(moved.values())
+        if gathered:
+            where = ", ".join(f"{n} into {name}" for name, n in moved.items())
+            emit(
+                "pass",
+                f"Collected {gathered} font{'' if gathered == 1 else 's'} from earlier runs: {where}.",
+            )
+        args._skipped_generated = []  # they were gathered, not skipped
     skipped = getattr(args, "_skipped_generated", [])
     names = sorted(
         {part for p in skipped for part in p.parts if part in getattr(args, "_generated_names", ())}
@@ -385,9 +411,15 @@ def _run(
             "error",
             f"No fonts to process: all {fonts(len(skipped))} found are inside folders from an earlier run"
             f" ({', '.join(names)}).",
-            explanation="Name that folder itself, or add --include-generated to process them.",
+            explanation=(
+                "Use -ct to gather them into one folder, name that folder itself, or add --include-generated "
+                "to process them again (originals in _archive would be converted a second time)."
+            ),
         )
         return 1
+    if not paths and gathered:
+        emit("pass", "Done. Nothing new to convert.")
+        return 0
     if not paths:
         emit(
             "error",
@@ -401,7 +433,6 @@ def _run(
             f"Skipped {fonts(len(skipped))} inside folders from an earlier run ({', '.join(names)}).",
             explanation="Add --include-generated to include them.",
         )
-    output_dir, consolidate, consolidate_top = _top_and_slots_args(args)
     if consolidate_top:
         emit(
             "pass",

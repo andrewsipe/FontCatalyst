@@ -2,11 +2,12 @@
 
 ## [Unreleased]
 
-### Changed
-- When every font found sits inside a folder from an earlier run (`_converted`, `_archive`, `_quarantine`, `_ttx`, `_converted_top`, `_ttx_top`, or the folder you named with `-c` or `-ct`), FontCatalyst now says so and names the folders, instead of "No TTF, OTF, WOFF, or WOFF2 files found". When only some fonts are skipped, it says how many. The fonts are still skipped on purpose, so a second `-r` pass does not process its own output.
-
 ### Added
-- `--include-generated`: also process fonts inside those folders. Naming one of them directly (for example `PATH/_converted`) already worked.
+- `-ct` now gathers what an earlier `-c` run left behind, so `-c -r` followed by `-ct -r` brings everything to one top-level folder without converting anything twice. Fonts in the per-folder `_converted` folders (or `_ttx` for `ttx`) move into the `-ct` results folder (`_converted_top` / `_ttx_top`), `_archive` into the top `_archive`, and `_quarantine` into the top `_quarantine`; names that already exist get a `#1` suffix as before, and the emptied folders are removed. New files in the same tree are converted in the same run. A second `-ct` pass changes nothing. `-c` alone still skips earlier-run folders.
+- `--include-generated`: also process fonts inside earlier-run folders (the `_archive` originals are converted again, so this is rarely what you want after a `-c` run; use `-ct`).
+
+### Changed
+- When every font found sits inside folders from an earlier run and nothing is gathered, FontCatalyst says so and names the folders (instead of "No TTF, OTF, WOFF, or WOFF2 files found"), and points to `-ct`. When only some are skipped, it says how many.
 
 ## [Unreleased]
 
