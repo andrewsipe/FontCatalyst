@@ -155,3 +155,40 @@ def test_ttx_ct_after_ttx_c_gathers_the_ttx_folders(tmp_path):
     files = listing(tmp_path)
     assert "_ttx_top/Normal-Regular.ttx" in files and "_ttx_top/Wide-Regular.ttx" in files
     assert not (tmp_path / "Normal" / "_ttx").exists()
+
+
+# ---- naming the earlier-run folder itself ---------------------------------------------------------------
+
+def test_ct_on_an_earlier_run_folder_itself_is_an_ordinary_pass_not_a_collection(tmp_path):
+    folder = tmp_path / "_converted"
+    make(folder / "a.ttf")
+    make_woff(folder / "b.woff")
+    result = run("-ct", "-r", folder)
+    out = flat(result)
+    assert "Traceback" not in out and result.returncode == 0, out
+    assert "Collected" not in out  # the folder you name is the source, not something to gather
+    files = listing(folder)
+    assert "_converted_top/a.ttf" in files and "_converted_top/b.ttf" in files and "_archive/b.woff" in files
+
+
+def test_a_file_that_vanishes_mid_run_is_an_error_line_not_a_crash(tmp_path, monkeypatch, capsys):
+    import pytest
+
+    import fontcatalyst.cli as cli
+
+    make(tmp_path / "a.ttf")
+    make(tmp_path / "b.ttf")
+    real = cli.ingest_file
+
+    def flaky(path, slots, repair):
+        if path.name == "a.ttf":
+            path.unlink()  # gone before it is read
+        return real(path, slots, repair)
+
+    monkeypatch.setattr(cli, "ingest_file", flaky)
+    monkeypatch.setattr(sys, "argv", ["fontcatalyst", str(tmp_path)])
+    with pytest.raises(SystemExit) as stopped:
+        cli.main()
+    out = " ".join((capsys.readouterr().out).split())
+    assert stopped.value.code in (0, 1)
+    assert "a.ttf" in out and "pass 1" in out and "error 1" in out  # b was still processed; a is reported

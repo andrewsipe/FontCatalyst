@@ -441,6 +441,10 @@ def _run(
     counts = {"pass": 0, "skip": 0, "fail": 0, "error": 0}
     quarantine_dirs: set[Path] = set()
     for path in paths:
+        if not path.exists():
+            counts["error"] += 1
+            emit("error", f"{path.name}: the file is gone (moved or deleted since it was found).")
+            continue
         slots = slots_for(
             path,
             output_dir=output_dir,
@@ -449,7 +453,12 @@ def _run(
         )
         if slots.quarantine is not None:
             quarantine_dirs.add(slots.quarantine)
-        outcome = runner(path, slots)
+        try:
+            outcome = runner(path, slots)
+        except Exception as exc:  # one bad file must not stop the run or leave a traceback
+            counts["error"] += 1
+            emit("error", f"{path.name}: {type(exc).__name__}: {exc}")
+            continue
         counts[outcome.status] = counts.get(outcome.status, 0) + 1
         emit_outcome(outcome)
     for folder in quarantine_dirs:

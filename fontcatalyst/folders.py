@@ -151,6 +151,8 @@ def collect_earlier_runs(
             if any(here == p or p in here.parents for p in protected):
                 dirnames[:] = []
                 continue
+            if here == root.resolve():
+                continue  # the folder you name is the source, never something to gather
             if here.name in dests:
                 found.append(here)
                 dirnames[:] = []

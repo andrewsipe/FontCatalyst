@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Fixed
+- `-ct` on a folder that is itself an earlier-run folder (for example `fontcatalyst -ct -r PATH/_converted`) gathered that folder's own files into a `_converted_top` inside it and then crashed with a `FileNotFoundError` traceback. The folder you name is now always the source, never something to gather, and only earlier-run folders below it are gathered. A file that disappears mid-run (or any per-file error) is now an error line and the run continues, with the error counted in the summary.
+
 ### Added
 - `-ct` now gathers what an earlier `-c` run left behind, so `-c -r` followed by `-ct -r` brings everything to one top-level folder without converting anything twice. Fonts in the per-folder `_converted` folders (or `_ttx` for `ttx`) move into the `-ct` results folder (`_converted_top` / `_ttx_top`), `_archive` into the top `_archive`, and `_quarantine` into the top `_quarantine`; names that already exist get a `#1` suffix as before, and the emptied folders are removed. New files in the same tree are converted in the same run. A second `-ct` pass changes nothing. `-c` alone still skips earlier-run folders.
 - `--include-generated`: also process fonts inside earlier-run folders (the `_archive` originals are converted again, so this is rarely what you want after a `-c` run; use `-ct`).
