@@ -463,14 +463,16 @@ def _run(
         emit_outcome(outcome)
     for folder in quarantine_dirs:
         remove_if_empty(folder)
-    summary = f"pass {counts['pass']}, fail {counts['fail']}, error {counts['error']}"
-    if counts["skip"]:
-        summary = (
-            f"pass {counts['pass']}, skipped {counts['skip']}, "
-            f"fail {counts['fail']}, error {counts['error']}"
-        )
-    emit("pass", f"Done. {summary}.")
-    return 0
+    problems = counts["fail"] + counts["error"]
+    cs.fmt_processing_summary(
+        updated=counts["pass"],
+        unchanged=None,
+        errors=problems,
+        skipped=counts["skip"],
+        verb="Converted",
+        console=cs.get_console(),
+    )
+    return 1 if problems else 0
 
 
 def main(argv: list[str] | None = None) -> None:

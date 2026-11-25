@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.0] - 2026-11-25
+
+FontCore 0.8.2 vendored (see `FontCore/VENDOR.md`).
+
+### Changed
+- A run ends with one sentence ("Converted 3, skipped 1, 2 problems."), and a warning chip when anything went wrong.
+- The exit code is 1 when any font failed or errored (it was always 0).
+
 ## [1.4.0] - 2026-11-25
 
 FontCore 0.7.0 vendored (see `FontCore/VENDOR.md`). Its file collector now skips macOS junk and hidden files and folders, lists each real file once, and warns about a path that does not exist.

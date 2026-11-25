@@ -50,13 +50,13 @@ def test_include_generated_processes_them(tmp_path):
     make(tmp_path / "Normal" / "_converted" / "a.ttf")
     make(tmp_path / "Expanded" / "_converted" / "b.ttf")
     result = run("-r", "--include-generated", tmp_path)
-    assert result.returncode == 0 and "pass 2" in flat(result)
+    assert result.returncode == 0 and "Converted 2" in flat(result)
 
 
 def test_naming_the_generated_folder_itself_works(tmp_path):
     make(tmp_path / "Normal" / "_converted" / "a.ttf")
     result = run("-r", tmp_path / "Normal" / "_converted")
-    assert result.returncode == 0 and "pass 1" in flat(result)
+    assert result.returncode == 0 and "Converted 1" in flat(result)
 
 
 def test_a_mixed_tree_processes_the_rest_and_says_what_it_skipped(tmp_path):
@@ -65,7 +65,7 @@ def test_a_mixed_tree_processes_the_rest_and_says_what_it_skipped(tmp_path):
     make(tmp_path / "Fam" / "_archive" / "old.ttf")
     result = run("-r", tmp_path)
     out = flat(result)
-    assert result.returncode == 0 and "pass 2" in out
+    assert result.returncode == 0 and "Converted 2" in out
     assert "Skipped 1 font" in out and "--include-generated" in out
 
 
@@ -190,5 +190,5 @@ def test_a_file_that_vanishes_mid_run_is_an_error_line_not_a_crash(tmp_path, mon
     with pytest.raises(SystemExit) as stopped:
         cli.main()
     out = " ".join((capsys.readouterr().out).split())
-    assert stopped.value.code in (0, 1)
-    assert "a.ttf" in out and "pass 1" in out and "error 1" in out  # b was still processed; a is reported
+    assert stopped.value.code == 1
+    assert "a.ttf" in out and "Converted 1" in out and "1 problem" in out  # b was still processed; a is reported
