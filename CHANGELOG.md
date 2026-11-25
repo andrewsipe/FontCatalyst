@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.6.0] - 2026-11-25
+
+### Changed
+- A font is skipped as "from an earlier run" because this tool wrote or moved it, not because of its folder's name. Each folder the tool puts fonts in gets a hidden `.fontcatalyst.json` (name, size, SHA-256). A font you drop into `_converted` later, or one edited since, is processed; fonts the tool wrote into a folder with any other name (`-o web_ready`) are skipped. Folders from older runs have no manifest and are still recognised by name.
+- Fonts directly in a folder you name, and fonts you name yourself, are always processed (unchanged).
+
 ## [1.5.0] - 2026-11-25
 
 FontCore 0.8.2 vendored (see `FontCore/VENDOR.md`).

@@ -21,6 +21,7 @@ from FontCore.core_cli_help import (
 from FontCore.core_file_collector import iter_font_files
 
 from fontcatalyst import __version__
+from fontcatalyst import provenance
 from fontcatalyst.folders import collect_earlier_runs, common_parent, remove_if_empty, slots_for
 from fontcatalyst.pipeline import convert_file, emit, emit_outcome, ingest_file, ttx_file
 from fontcatalyst.repair import ttx_available
@@ -338,20 +339,33 @@ def _generated_dir_names(args) -> set[str]:
 
 
 def _inside_generated(path: Path, names: set[str], explicit: list[Path]) -> bool:
-    """True when a font sits inside an output folder this tool created.
+    """True when a font is output of an earlier run, so this run should not take it for new work.
 
-    The folder the user passed is not output. Only generated names nested
-    under that request are skipped, so a later -r does not reprocess
-    _archive or _converted from an earlier run.
+    Two ways to know. A font this tool wrote or moved is listed in its folder's manifest (see `provenance`); that
+    holds whatever the folder is called, and a font the user added later is not listed, so it is processed. A folder
+    from before manifests has none, so the name of a folder this tool creates (_converted, _archive, ...) decides.
+    Fonts directly in a folder the user named, or named themselves, are always processed.
     """
     resolved = path.resolve()
     for root in explicit:
+        if resolved == root:
+            return False  # a font named by hand is processed
         base = root if root.is_dir() else root.parent
         try:
             relative = resolved.relative_to(base)
         except ValueError:
             continue
+        if len(relative.parts) == 1:
+            return False  # directly in the folder that was named
+        if provenance.is_ours(resolved):
+            return True
+        if provenance.has_manifest(resolved.parent):
+            return False  # this folder is tracked, and this font is not one of ours
         return any(part in names for part in relative.parts)
+    if provenance.is_ours(resolved):
+        return True
+    if provenance.has_manifest(resolved.parent):
+        return False
     return any(part in names for part in resolved.parts)
 
 

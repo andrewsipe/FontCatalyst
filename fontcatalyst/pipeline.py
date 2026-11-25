@@ -10,6 +10,7 @@ from pathlib import Path
 
 import FontCore.core_console_styles as cs
 
+from fontcatalyst import provenance
 from fontcatalyst.convert import ConvertError, NothingToDo, ttf_to_otf, wrap
 from fontcatalyst.folders import Slots, display_dest, ensure_dir, next_free, park
 from fontcatalyst.repair import apply_structure, dump_ttx, rebuild_with_ttx
@@ -82,6 +83,7 @@ def ingest_file(path: Path, slots: Slots, repair: bool) -> Outcome:
             dest = next_free(slots.output / f"{path.stem}{sfnt_suffix(font)}")
             decompress(font)
             font.save(dest)
+            provenance.record(dest)
             written = display_dest(dest, path)
             archived_path = park(path, slots.archive)
             if archived_path is not None:
@@ -197,6 +199,7 @@ def convert_file(path: Path, slots: Slots, target: str) -> Outcome:
         ensure_dir(slots.output)
         dest = next_free(slots.output / f"{path.stem}{suffix}")
         font.save(dest)
+        provenance.record(dest)
         written = display_dest(dest, path)
         archived_path = park(path, slots.archive)
         archived = display_dest(archived_path, path) if archived_path else None

@@ -7,6 +7,8 @@ from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 
+from fontcatalyst import provenance
+
 
 @dataclass
 class Slots:
@@ -92,6 +94,7 @@ def park(source: Path, folder: Path | None) -> Path | None:
     folder.mkdir(parents=True, exist_ok=True)
     dest = next_free(folder / source.name)
     source.rename(dest)
+    provenance.record(dest)
     return dest
 
 
