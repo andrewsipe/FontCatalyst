@@ -1,6 +1,8 @@
 # Changelog
 
-## [Unreleased]
+## [1.4.0] - 2026-11-25
+
+FontCore 0.7.0 vendored (see `FontCore/VENDOR.md`). Its file collector now skips macOS junk and hidden files and folders, lists each real file once, and warns about a path that does not exist.
 
 ### Fixed
 - `-ct` on a folder that is itself an earlier-run folder (for example `fontcatalyst -ct -r PATH/_converted`) gathered that folder's own files into a `_converted_top` inside it and then crashed with a `FileNotFoundError` traceback. The folder you name is now always the source, never something to gather, and only earlier-run folders below it are gathered. A file that disappears mid-run (or any per-file error) is now an error line and the run continues, with the error counted in the summary.

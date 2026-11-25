@@ -1,6 +1,6 @@
 # Font Catalyst
 
-**Version 1.3.9**
+**Version 1.4.0**
 
 Decompress WOFF and WOFF2 to the TTF or OTF that is already inside them, then report a short structural check. A TTX rebuild is a repair you ask for — not the way a webfont enters the collection.
 
