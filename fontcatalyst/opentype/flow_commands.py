@@ -343,6 +343,11 @@ def cmd_connect(ctx: FlowContext, *, apply: bool = False, replace: bool = False)
                 errors += 1
 
     cs.emit("")
+    if not apply and plans_with_work:
+        cs.StatusIndicator("info").add_message(
+            f"Plan only: {plans_with_work} font(s) have rules to add, and no font was changed. "
+            "Run again with --apply to write them (add --backup to keep the originals)."
+        ).emit()
     summary = cs.StatusIndicator("success").add_message("Connect complete")
     if blocked:
         summary = summary.with_explanation(f"{blocked} font(s) blocked — run wrap or use full export")
