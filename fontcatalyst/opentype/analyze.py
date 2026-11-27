@@ -17,6 +17,7 @@ from .feature_policy import (
     detect_single_pairs,
     policy_by_tag,
 )
+from .structure_checks import find_structure_notes
 from .models import (
     ConnectTier,
     FeatureState,
@@ -315,6 +316,7 @@ def analyze_font(font: TTFont, path: Path) -> FontFeatureAudit:
         warnings=warnings,
     )
     audit.recommendations = compute_recommendations(audit)
+    audit.structure_notes = find_structure_notes(font)
     return audit
 
 

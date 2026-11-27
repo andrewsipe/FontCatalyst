@@ -3,6 +3,7 @@
 ## [1.8.0] - 2026-11-27
 
 ### Added
+- `features scan` has a "Layout structure (read-only)" section, and `verify` reports the same findings. It covers what `connect` cannot change: lookups no feature uses, features that point at lookups that do not exist (an error), features no script lists, pair kerning that no feature reaches, kerning only in the old `kern` table, combining marks with no GPOS `mark` feature, mark features with no GDEF glyph classes, and the contextual lookups (`calt`, `ccmp`, `locl`, `frac` and others) that are left alone. Lookups used only through a variable font's FeatureVariations count as used.
 - Character variants: glyphs named `base.cv01` to `base.cv99` are detected, shown in `scan` next to the stylistic sets, and written into the `connect` plan as `cvNN` features. The variant needs its base glyph in the font.
 - Stylistic-set glyph names are matched with one or two digits and any case (`a.ss7`, `b.SS03`).
 

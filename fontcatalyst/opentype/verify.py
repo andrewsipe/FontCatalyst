@@ -112,6 +112,12 @@ def verify_font(
             )
         )
 
+    for note in audit.structure_notes:
+        if note.severity == "error":
+            report.findings.append(VerifyFinding(VerifySeverity.ERROR, note.message))
+        elif note.severity == "warning":
+            report.findings.append(VerifyFinding(VerifySeverity.WARNING, note.message))
+
     inv = audit.glyph_inventory
     if inv.limited_glyph_set and not inv.has_variant_glyphs:
         report.findings.append(

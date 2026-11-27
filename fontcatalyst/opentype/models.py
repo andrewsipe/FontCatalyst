@@ -110,6 +110,15 @@ class FeatureRecommendation:
 
 
 @dataclass
+class StructureNote:
+    """One read-only finding about GSUB/GPOS structure that connect cannot change."""
+
+    severity: str  # "error" | "warning" | "info"
+    code: str
+    message: str
+
+
+@dataclass
 class FontFeatureAudit:
     path: Path
     existing_tags: set[str]
@@ -125,6 +134,7 @@ class FontFeatureAudit:
     has_gsub_table: bool = False
     active_fea: str = ""
     warnings: List[str] = field(default_factory=list)
+    structure_notes: List[StructureNote] = field(default_factory=list)
 
     def gaps(self) -> List[FeatureStatus]:
         out: List[FeatureStatus] = []

@@ -279,6 +279,27 @@ def render_recommendations(audits: List[FontFeatureAudit]) -> str:
     return "\n".join(lines)
 
 
+def render_structure_notes(audits: List[FontFeatureAudit]) -> str:
+    lines = [
+        "Layout structure (read-only)",
+        "-" * 56,
+        "  Contextual lookups, unused lookups, kerning wiring and mark setup. connect does not change these.",
+    ]
+    flagged = [a for a in audits if a.structure_notes]
+    if not flagged:
+        lines.append("  Nothing found in any font")
+        return "\n".join(lines)
+    mark = {"error": "ERROR  ", "warning": "WARNING", "info": "info   "}
+    for audit in flagged:
+        lines.append(f"  {audit.path.name}")
+        for note in sorted(audit.structure_notes, key=lambda n: ("error", "warning", "info").index(n.severity)):
+            lines.append(f"    {mark.get(note.severity, note.severity)} {note.message}")
+    clean = len(audits) - len(flagged)
+    if clean:
+        lines.append(f"  {clean} font(s): nothing found")
+    return "\n".join(lines)
+
+
 def render_family_scan(audits: List[FontFeatureAudit], *, parent: Path) -> str:
     sections = [
         f"Scan: {parent.name} ({len(audits)} font(s))",
@@ -294,5 +315,7 @@ def render_family_scan(audits: List[FontFeatureAudit], *, parent: Path) -> str:
         render_glyph_detection_matrix(audits),
         "",
         render_recommendations(audits),
+        "",
+        render_structure_notes(audits),
     ]
     return "\n".join(sections)
