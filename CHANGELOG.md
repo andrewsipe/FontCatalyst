@@ -2,6 +2,10 @@
 
 ## [1.8.0] - 2026-11-27
 
+### Added
+- Character variants: glyphs named `base.cv01` to `base.cv99` are detected, shown in `scan` next to the stylistic sets, and written into the `connect` plan as `cvNN` features. The variant needs its base glyph in the font.
+- Stylistic-set glyph names are matched with one or two digits and any case (`a.ss7`, `b.SS03`).
+
 ### Changed (pipeline)
 - `features pipeline` now works one font at a time: read once, audit, wrap, connect, aalt, sort, verify, save once, then the next font. Each font prints its own block. A font is not saved if the changes add verify errors. The separate `scan`, `wrap`, `connect`, `aalt`, `sort` and `verify` commands are unchanged.
 

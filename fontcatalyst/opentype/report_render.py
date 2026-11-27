@@ -57,7 +57,7 @@ def render_audit_fea(audit: FontFeatureAudit, font: TTFont, *, suggest: bool = T
             continue
         ss_num = int(tag[2:])
         fea = FeatureCodeGenerator.generate_stylistic_set_feature(
-            ss_num, status.missing_pairs
+            ss_num, status.missing_pairs, prefix=tag[:2]
         )
         inactive_blocks.append((tag, status.label, status.missing_pairs, fea))
 

@@ -260,6 +260,7 @@ def naming_policy_tags() -> frozenset[str]:
     """GSUB tags the glyph-naming scan matrix knows how to evaluate."""
     tags = {e.tag for e in all_policy_entries()}
     tags.update(f"ss{n:02d}" for n in range(1, 21))
+    tags.update(f"cv{n:02d}" for n in range(1, 100))
     return frozenset(tags)
 
 

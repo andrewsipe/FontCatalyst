@@ -53,13 +53,13 @@ class FeatureCodeGenerator:
 
     @staticmethod
     def generate_stylistic_set_feature(
-        ss_num: int, substitutions: List[Tuple[str, str]]
+        ss_num: int, substitutions: List[Tuple[str, str]], prefix: str = "ss"
     ) -> str:
-        """Generate a stylistic set feature (ss01-ss20)."""
+        """Generate a stylistic set (ss01-ss20) or character variant (cv01-cv99) feature."""
         if not substitutions:
             return ""
 
-        feature_tag = f"ss{ss_num:02d}"
+        feature_tag = f"{prefix}{ss_num:02d}"
         lines = [f"feature {feature_tag} {{"]
 
         for base_glyph, variant_glyph in substitutions:

@@ -33,6 +33,10 @@ class GlyphClassification:
     ss_number: Optional[int] = None
     base_glyph: Optional[str] = None
 
+    is_character_variant: bool = False
+    cv_number: Optional[int] = None
+    cv_base: Optional[str] = None
+
     is_small_cap: bool = False
     is_figure_variant: bool = False
     figure_variant_type: Optional[str] = None  # onum, lnum, tnum, pnum
@@ -83,7 +87,8 @@ class UnifiedGlyphDetector:
     """Single-pass glyph pattern detector."""
 
     # Compile patterns once
-    SS_PATTERN = re.compile(r"^(.+)\.ss(\d{2})$")
+    SS_PATTERN = re.compile(r"^(.+)\.ss(\d{1,2})$", re.IGNORECASE)
+    CV_PATTERN = re.compile(r"^(.+)\.cv(\d{1,2})$", re.IGNORECASE)
     SC_PATTERN = re.compile(r"^(.+)\.(sc|smallcap|smcp)$")
     SWSH_PATTERN = re.compile(r"^(.+)\.(swsh|swash)$")
     # Only *.calt*. Plain *.alt* is classified as salt (see _check_stylistic_alternate).
@@ -114,6 +119,7 @@ class UnifiedGlyphDetector:
             # Check each pattern
             self._check_ligature(glyph_name, classification)
             self._check_stylistic_set(glyph_name, classification)
+            self._check_character_variant(glyph_name, classification)
             self._check_small_cap(glyph_name, classification)
             self._check_figure_variant(glyph_name, classification)
             self._check_swash(glyph_name, classification)
@@ -237,6 +243,19 @@ class UnifiedGlyphDetector:
                 classification.is_stylistic_alternate = True
                 classification.ss_number = ss_num
                 classification.base_glyph = base_name
+
+    def _check_character_variant(
+        self, glyph_name: str, classification: GlyphClassification
+    ):
+        """Check if glyph is a character variant (a.cv01 ... a.cv99)."""
+        match = self.CV_PATTERN.match(glyph_name)
+        if match:
+            base_name = match.group(1)
+            cv_num = int(match.group(2))
+            if 1 <= cv_num <= 99 and base_name in self.glyph_order:
+                classification.is_character_variant = True
+                classification.cv_number = cv_num
+                classification.cv_base = base_name
 
     def _check_small_cap(self, glyph_name: str, classification: GlyphClassification):
         """Check if glyph is a small cap."""
@@ -419,6 +438,7 @@ class UnifiedGlyphDetector:
             "liga": [],
             "dlig": [],
             "stylistic_sets": {},
+            "character_variants": {},
             "smcp": [],
             "onum": [],
             "lnum": [],
@@ -460,6 +480,11 @@ class UnifiedGlyphDetector:
                 features["stylistic_sets"].setdefault(ss_num, []).append(
                     (base, glyph_name)
                 )
+
+            if classification.is_character_variant:
+                features["character_variants"].setdefault(
+                    classification.cv_number, []
+                ).append((classification.cv_base, glyph_name))
 
             if classification.is_small_cap and classification.base_glyph:
                 features["smcp"].append((classification.base_glyph, glyph_name))

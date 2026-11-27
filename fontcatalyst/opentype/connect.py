@@ -183,7 +183,7 @@ def render_connect_fea(audit: FontFeatureAudit, plan: ConnectPlan, font: TTFont)
             continue
         ss_num = int(tag[2:])
         fea = FeatureCodeGenerator.generate_stylistic_set_feature(
-            ss_num, status.missing_pairs
+            ss_num, status.missing_pairs, prefix=tag[:2]
         )
         if fea:
             blocks.append(fea)

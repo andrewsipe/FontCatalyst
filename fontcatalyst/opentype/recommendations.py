@@ -120,6 +120,11 @@ def tier_for_gap(
             return RecommendTier.MEDIUM, "complete partial stylistic set"
         return RecommendTier.MEDIUM, "wire detected stylistic set glyphs"
 
+    if tag.startswith("cv"):
+        if status.state == FeatureState.PARTIAL:
+            return RecommendTier.MEDIUM, "complete partial character variant"
+        return RecommendTier.MEDIUM, "wire detected character variant glyphs"
+
     if tag in HIGH_PRIORITY_TAGS:
         return RecommendTier.HIGH, f"{status.label} glyphs detected, feature unwired"
 

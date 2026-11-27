@@ -170,8 +170,9 @@ def _classify_stylistic_set(
     substitutions: List[Tuple[str, str]],
     wired: Set[Tuple[str, str]],
     tag_present: bool,
+    prefix: str = "ss",
 ) -> FeatureStatus:
-    tag = f"ss{ss_num:02d}"
+    tag = f"{prefix}{ss_num:02d}"
     wired_pairs = [p for p in substitutions if p in wired]
     missing_pairs = [p for p in substitutions if p not in wired]
 
@@ -186,7 +187,7 @@ def _classify_stylistic_set(
 
     return FeatureStatus(
         tag=tag,
-        label=feature_label(f"ss{ss_num:02d}"),
+        label=feature_label(tag),
         state=state,
         connect_tier=ConnectTier.SIMPLE,
         detected_pairs=substitutions,
@@ -261,6 +262,13 @@ def analyze_font(font: TTFont, path: Path) -> FontFeatureAudit:
             stylistic_sets[tag] = _classify_stylistic_set(
                 ss_num, subs, wired_singles, tag in existing_tags
             )
+
+    # Character variants sit beside the stylistic sets: same shape (base -> variant), tags cv01-cv99.
+    for cv_num, subs in sorted(detected.get("character_variants", {}).items()):
+        tag = f"cv{cv_num:02d}"
+        stylistic_sets[tag] = _classify_stylistic_set(
+            cv_num, subs, wired_singles, tag in existing_tags, prefix="cv"
+        )
 
     wrap_status = assess_wrap_status(font)
     otl_stripped = _otl_stripped_suspected(validator, features, stylistic_sets)
