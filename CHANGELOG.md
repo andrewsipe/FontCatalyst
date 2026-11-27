@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.7.0] - 2026-11-27
+
+### Added
+- `fontcatalyst otl`: the OpenType feature tools (scan, wrap, connect, aalt, verify, sort, pipeline) now live here instead of in the separate Opentype_Tools package. The commands, options and `otl_reports/` output are unchanged; the old `report` alias is dropped (use `scan --write-report`).
+
 ## [1.6.1] - 2026-11-27
 
 FontCore 0.12.0 vendored (see `FontCore/VENDOR.md`).

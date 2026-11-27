@@ -62,6 +62,7 @@ NOTES = [
 SUBCOMMANDS = {
     "convert": "One target per run: lossless WOFF/WOFF2 wrap, or TTF to OTF. fontcatalyst convert --help",
     "ttx": "Dump a file or a directory tree to TTX. fontcatalyst ttx --help",
+    "otl": "OpenType features: scan, wrap, connect, aalt, verify, sort, pipeline. fontcatalyst otl --help",
 }
 
 # What each convert target actually does. Shown under --to, and echoed on the result line.
@@ -498,6 +499,11 @@ def main(argv: list[str] | None = None) -> None:
     argv = list(sys.argv[1:] if argv is None else argv)
     # Subcommands are matched before the default parser so the word is not
     # taken as a PATH. The default command stays bare (`fontcatalyst PATH`).
+    if argv and argv[0] == "otl":
+        from fontcatalyst.opentype.cli import main as otl_main
+
+        sys.exit(otl_main(argv[1:]))
+
     if argv and argv[0] == "convert":
         parser = build_convert_parser()
         args = parser.parse_args(argv[1:])

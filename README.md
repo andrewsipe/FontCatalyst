@@ -78,6 +78,29 @@ fontcatalyst ttx fonts/ -r          # Family.ttx beside each font
 fontcatalyst ttx fonts/ -r -ct      # .ttx files in _ttx_top/, originals in _archive/
 ```
 
+## OpenType features
+
+`fontcatalyst otl` audits and repairs a font's GSUB and GPOS features. It was the separate Opentype_Tools package.
+
+```bash
+fontcatalyst otl scan fonts/ -r                       # which features exist, what the glyphs could use
+fontcatalyst otl connect fonts/ -r --dry-run          # build the FEA that would reconnect them
+fontcatalyst otl connect fonts/ -r --apply --backup -y
+fontcatalyst otl pipeline fonts/ -r --backup -y       # scan, wrap, connect, aalt, verify, sort
+```
+
+| Command | What it does |
+|---------|--------------|
+| `scan` | Audit installed features, wrap needs, gaps and graded recommendations (`--write-report` adds a family summary) |
+| `wrap` | Add OTL scaffolding and enrichment (TrueType and OpenType/CFF) |
+| `connect` | Build reconnect FEA; `--apply` merges it into the fonts |
+| `aalt` | Build an `aalt` feature from the installed GSUB features |
+| `verify` | Read-only health check after the others |
+| `sort` | Sort GSUB, GPOS and GDEF Coverage tables (the same fix as `--repair`) |
+| `pipeline` | All of them in order; `--no-wrap`, `--no-connect`, `--no-aalt`, `--no-verify`, `--no-sort` skip a step |
+
+Every command takes `-r`, `--dry-run`, `-y`, `--backup` and `--output-dir`. Reports go under `otl_reports/`.
+
 ## Related
 
 - [FontFixer](https://github.com/andrewsipe/FontFixer) — OS/2, style, glyph, kern tidy-up  

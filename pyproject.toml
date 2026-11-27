@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fontcatalyst"
-version = "1.6.1"
+version = "1.7.0"
 description = "Font Catalyst — decompress WOFF/WOFF2 to TTF/OTF, then review and optionally repair"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -34,7 +34,10 @@ Changelog = "https://github.com/andrewsipe/FontCatalyst/blob/main/CHANGELOG.md"
 fontcatalyst = "fontcatalyst.cli:main"
 
 [tool.setuptools]
-packages = ["fontcatalyst", "FontCore"]
+packages = ["fontcatalyst", "fontcatalyst.opentype", "FontCore"]
+
+[tool.setuptools.package-data]
+"fontcatalyst.opentype" = ["data/*.json"]
 
 [tool.setuptools.package-dir]
 "fontcatalyst" = "fontcatalyst"
