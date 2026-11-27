@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fontcatalyst"
-version = "1.6.0"
+version = "1.6.1"
 description = "Font Catalyst — decompress WOFF/WOFF2 to TTF/OTF, then review and optionally repair"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -41,4 +41,4 @@ packages = ["fontcatalyst", "FontCore"]
 "FontCore" = "FontCore"
 
 [tool.fontcore-vendor]
-modules = ["core_cli_help", "core_console_config", "core_console_styles", "core_file_collector", "core_logging_config"]
+modules = ["core_cli_help", "core_coverage_sort", "core_console_config", "core_console_styles", "core_file_collector", "core_logging_config"]

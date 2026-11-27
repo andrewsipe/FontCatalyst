@@ -3,17 +3,22 @@
 fontcatalyst ships a minimal copy of [FontCore](https://github.com/andrewsipe/FontCore)
 so it installs without the full library, a submodule, or a symlink.
 
-**Source:** FontCore 0.8.2 (`v0.8.2`)
+**Source:** FontCore 0.12.0 (`v0.11.6-7-gc709070`)
 
 **Do not edit these files here.** Fix them in FontCore, then re-sync.
 
 ## Declared modules
 
 - `core_cli_help.py`
+- `core_coverage_sort.py`
 - `core_console_config.py`
 - `core_console_styles.py`
 - `core_file_collector.py`
 - `core_logging_config.py`
+
+## Pulled in as imports of the above
+
+- `core_gpos_repair.py`
 
 ## Refresh
 

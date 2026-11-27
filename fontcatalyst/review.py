@@ -7,7 +7,7 @@ from io import BytesIO
 
 from fontTools.ttLib import TTFont
 
-from fontcatalyst.coverage_sort import sort_coverage_tables_in_font
+from FontCore.core_coverage_sort import sort_coverage_tables_in_font
 
 
 @dataclass
@@ -117,7 +117,9 @@ def _structure_change_count(font: TTFont) -> int | None:
         buf.seek(0)
         probe = TTFont(buf, lazy=False)
         try:
-            _total, changed = sort_coverage_tables_in_font(probe, verbose=False)
+            _total, changed = sort_coverage_tables_in_font(probe)
+            if getattr(font, "coverage_was_unsorted", False) and not changed:
+                changed = 1  # the file holds an out-of-order Coverage that fontTools repaired on load; saving writes it sorted
             return changed
         finally:
             probe.close()

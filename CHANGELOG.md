@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.6.1] - 2026-11-27
+
+FontCore 0.12.0 vendored (see `FontCore/VENDOR.md`).
+
+### Fixed
+- The check now flags a font whose file holds an out-of-order Coverage table. fontTools repairs that quirk as it reads, so the check used to see a sorted font and call it good while the warning kept coming back. `--repair` writes it sorted.
+- The coverage sort moves the arrays that run parallel to a Coverage (mark and base anchors, rule sets, single-position values, cursive entries, GDEF attach points) with it. It used to move only pair sets, so a sort could give a glyph its neighbour's anchors.
+
+### Changed
+- The coverage sorter is FontCore's `core_coverage_sort`, shared with the OpenType tools. This tool no longer carries its own copy.
+
 ## [1.6.0] - 2026-11-25
 
 ### Changed

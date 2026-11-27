@@ -8,13 +8,13 @@ from pathlib import Path
 
 from fontTools.ttLib import TTFont
 
-from fontcatalyst.coverage_sort import sort_coverage_tables_in_font
+from FontCore.core_coverage_sort import sort_coverage_tables_in_font
 from fontcatalyst.sfnt import decompress, sfnt_suffix
 
 
 def apply_structure(font: TTFont) -> int:
     """Sort coverage tables and PairPos records in memory. Returns change count."""
-    _total, changed = sort_coverage_tables_in_font(font, verbose=False)
+    _total, changed = sort_coverage_tables_in_font(font)
     return changed
 
 
