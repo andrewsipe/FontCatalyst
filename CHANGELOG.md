@@ -3,6 +3,9 @@
 ## [1.8.0] - 2026-11-27
 
 ### Changed
+- `features` help now matches the other commands: a "Heads up" panel, examples, notes and exit status, with the same input / run / output / general groups on every subcommand.
+- `features --output-dir` is now `--report-dir`, since it only moves the `otl_reports` folders. `--output-dir` still works. `-n` is a short form of `--dry-run`.
+- `--backup` is no longer offered on `scan` and `verify`, which never change fonts.
 - `fontcatalyst otl` is now `fontcatalyst features`. `otl` still works as an alias.
 
 ### Removed
