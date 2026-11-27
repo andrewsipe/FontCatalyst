@@ -166,25 +166,72 @@ def parse_simple_feature_rules(
     return features, contextual_tags
 
 
+def _suffix_rank(glyph: str, patterns: Tuple[str, ...]):
+    """Index of the first naming suffix in ``patterns`` the glyph ends with, or None for a name no suffix explains."""
+    for rank, pattern in enumerate(patterns):
+        if glyph.endswith(pattern):
+            return rank
+    return None
+
+
+def _feature_single_mappings(gsub: otTables.GSUB, feature_tag: str) -> Dict[str, Tuple[dict, str]]:
+    """input glyph -> (that lookup's mapping dict, output glyph) for the single substitutions this feature already runs."""
+    found: Dict[str, Tuple[dict, str]] = {}
+    lookups = gsub.LookupList.Lookup if getattr(gsub, "LookupList", None) else []
+    for rec in getattr(getattr(gsub, "FeatureList", None), "FeatureRecord", None) or []:
+        if rec.FeatureTag != feature_tag:
+            continue
+        for idx in rec.Feature.LookupListIndex or []:
+            if idx >= len(lookups):
+                continue
+            for st in lookups[idx].SubTable:
+                st = getattr(st, "ExtSubTable", None) or st
+                mapping = getattr(st, "mapping", None)
+                if isinstance(mapping, dict):
+                    for inp, out in mapping.items():
+                        found.setdefault(inp, (mapping, out))  # the first lookup to touch a glyph is the one that fires
+    return found
+
+
 def merge_single_substitutions(
     font: TTFont,
     feature_tag: str,
     pairs: List[Tuple[str, str]],
-) -> int:
-    """Append a type-1 lookup with new single substitutions. Returns count added."""
+) -> Tuple[int, int]:
+    """Add new single substitutions to a feature. Returns (added, replaced).
+
+    A feature maps an input glyph to one output, and the first rule to match fires. So a glyph the feature already
+    maps is left alone, unless the old output is a naming-suffix variant and the new one ranks higher for this feature
+    (eight.onum over eight.tosf for onum): then the old rule is replaced in place. An output with no suffix the policy
+    knows is the designer's choice and is never touched."""
     if not pairs:
-        return 0
+        return 0, 0
+
+    from .feature_policy import policy_by_tag
+
+    entry = policy_by_tag().get(feature_tag)
+    patterns = tuple(entry.patterns) if entry and getattr(entry, "patterns", None) else ()
 
     existing = ExistingSubstitutionExtractor(font).extract_all()["single"]
+    in_feature = _feature_single_mappings(font["GSUB"].table, feature_tag) if "GSUB" in font else {}
+
     new_pairs = []
+    replaced = 0
     seen_inputs = set()
     for a, b in pairs:
         if (a, b) in existing or a in seen_inputs:  # one output per input: the first listed wins, never the last
             continue
         seen_inputs.add(a)
+        if a in in_feature:
+            mapping, old = in_feature[a]
+            old_rank, new_rank = _suffix_rank(old, patterns), _suffix_rank(b, patterns)
+            if old != b and old_rank is not None and new_rank is not None and new_rank < old_rank:
+                mapping[a] = b
+                replaced += 1
+            continue  # already mapped here: a second rule for it would never fire
         new_pairs.append((a, b))
     if not new_pairs:
-        return 0
+        return 0, replaced
 
     gsub = _ensure_gsub_table(font)
     builder = SingleSubstBuilder(font, "connect")
@@ -192,7 +239,7 @@ def merge_single_substitutions(
     lookup = builder.build()
     lookup_idx = _append_lookup(gsub, lookup)
     _attach_lookup_to_feature(gsub, feature_tag, lookup_idx)
-    return len(new_pairs)
+    return len(new_pairs), replaced
 
 
 def merge_ligature_substitutions(
@@ -240,12 +287,14 @@ def merge_gsub_from_fea(font: TTFont, fea_content: str) -> Tuple[bool, List[str]
 
     total = 0
     for tag, rules in sorted(features.items()):
-        sub_count = merge_single_substitutions(font, tag, rules.get("subs", []))
+        sub_count, replaced = merge_single_substitutions(font, tag, rules.get("subs", []))
         lig_count = merge_ligature_substitutions(font, tag, rules.get("ligs", []))
         added = sub_count + lig_count
         if added:
             messages.append(f"Merged {added} rule(s) into feature '{tag}'")
-            total += added
+        if replaced:
+            messages.append(f"Replaced {replaced} rule(s) in feature '{tag}' with a better-ranked variant")
+        total += added + replaced
 
     if total == 0 and not contextual_tags:
         messages.append("No new substitutions to merge (all already present)")
