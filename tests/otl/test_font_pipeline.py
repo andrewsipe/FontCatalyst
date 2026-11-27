@@ -68,5 +68,5 @@ def test_the_gdef_class_warning_is_summarised_not_repeated(tmp_path, capsys):
         addOpenTypeFeaturesFromString(font, "feature kern { lookupflag IgnoreMarks; pos f i -20; } kern;")
         font.save(path)
     run_pipeline(_ctx(tmp_path, dry_run=True), Steps(wrap=False, connect=False, aalt=False, sort=False))
-    out = capsys.readouterr().out
+    out = " ".join(capsys.readouterr().out.split())  # the console wraps long lines
     assert out.count("no GDEF glyph classes") == 1
