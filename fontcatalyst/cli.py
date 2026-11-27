@@ -62,7 +62,7 @@ NOTES = [
 SUBCOMMANDS = {
     "convert": "One target per run: lossless WOFF/WOFF2 wrap, or TTF to OTF. fontcatalyst convert --help",
     "ttx": "Dump a file or a directory tree to TTX. fontcatalyst ttx --help",
-    "otl": "OpenType features: scan, wrap, connect, aalt, verify, sort, pipeline. fontcatalyst otl --help",
+    "features": "OpenType features: scan, wrap, connect, aalt, verify, sort, pipeline. fontcatalyst features --help",
 }
 
 # What each convert target actually does. Shown under --to, and echoed on the result line.
@@ -119,10 +119,6 @@ def _shared(
     g_out.add_argument(
         "-ct", "--consolidate-top", nargs="?", const=consolidate_top, type=Path, metavar="DIR",
         help=f"one result folder, with _archive and _quarantine beside it (default: {consolidate_top})",
-    )
-    g_out.add_argument(
-        "-j", "--jobs", type=int, default=1, metavar="N",
-        help="reserved for parallel runs (this version processes files in order)",
     )
 
 
@@ -499,7 +495,7 @@ def main(argv: list[str] | None = None) -> None:
     argv = list(sys.argv[1:] if argv is None else argv)
     # Subcommands are matched before the default parser so the word is not
     # taken as a PATH. The default command stays bare (`fontcatalyst PATH`).
-    if argv and argv[0] == "otl":
+    if argv and argv[0] in ("features", "otl"):  # otl is the old name
         from fontcatalyst.opentype.cli import main as otl_main
 
         sys.exit(otl_main(argv[1:]))

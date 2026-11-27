@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.8.0] - 2026-11-27
+
+### Changed
+- `fontcatalyst otl` is now `fontcatalyst features`. `otl` still works as an alias.
+
+### Removed
+- `-j/--jobs` on the default command, `convert` and `ttx`. It never did anything.
+
 ## [1.7.0] - 2026-11-27
 
 ### Added

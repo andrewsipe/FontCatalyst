@@ -1,4 +1,4 @@
-"""fontcatalyst otl: OpenType feature audit, wrap, connect, aalt, verify and sort."""
+"""fontcatalyst features: OpenType feature audit, wrap, connect, aalt, verify and sort."""
 
 from __future__ import annotations
 
@@ -63,7 +63,7 @@ def _add_globals(parser: argparse.ArgumentParser) -> None:
     )
 
 
-PROG = "fontcatalyst otl"
+PROG = "fontcatalyst features"
 
 
 def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:

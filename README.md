@@ -80,13 +80,13 @@ fontcatalyst ttx fonts/ -r -ct      # .ttx files in _ttx_top/, originals in _arc
 
 ## OpenType features
 
-`fontcatalyst otl` audits and repairs a font's GSUB and GPOS features. It was the separate Opentype_Tools package.
+`fontcatalyst features` audits and repairs a font's GSUB and GPOS features. It was the separate Opentype_Tools package (`otl` still works as the old name).
 
 ```bash
-fontcatalyst otl scan fonts/ -r                       # which features exist, what the glyphs could use
-fontcatalyst otl connect fonts/ -r --dry-run          # build the FEA that would reconnect them
-fontcatalyst otl connect fonts/ -r --apply --backup -y
-fontcatalyst otl pipeline fonts/ -r --backup -y       # scan, wrap, connect, aalt, verify, sort
+fontcatalyst features scan fonts/ -r                       # which features exist, what the glyphs could use
+fontcatalyst features connect fonts/ -r --dry-run          # build the FEA that would reconnect them
+fontcatalyst features connect fonts/ -r --apply --backup -y
+fontcatalyst features pipeline fonts/ -r --backup -y       # scan, wrap, connect, aalt, verify, sort
 ```
 
 | Command | What it does |
