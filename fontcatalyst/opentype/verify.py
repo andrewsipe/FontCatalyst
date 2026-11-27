@@ -25,6 +25,7 @@ class VerifySeverity(str, Enum):
 class VerifyFinding:
     severity: VerifySeverity
     message: str
+    code: str = ""  # set for findings that come from a structure note, so a caller can group them
 
 
 @dataclass
@@ -116,7 +117,7 @@ def verify_font(
         if note.severity == "error":
             report.findings.append(VerifyFinding(VerifySeverity.ERROR, note.message))
         elif note.severity == "warning":
-            report.findings.append(VerifyFinding(VerifySeverity.WARNING, note.message))
+            report.findings.append(VerifyFinding(VerifySeverity.WARNING, note.message, note.code))
 
     inv = audit.glyph_inventory
     if inv.limited_glyph_set and not inv.has_variant_glyphs:

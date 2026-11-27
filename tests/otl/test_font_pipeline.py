@@ -56,3 +56,17 @@ def test_a_font_that_needs_work_is_saved_once(tmp_path):
     assert "GSUB" not in TTFont(path)
     assert run_pipeline(_ctx(tmp_path), Steps()) == 0
     assert "GSUB" in TTFont(path)  # wrapped and saved
+
+
+def test_the_gdef_class_warning_is_summarised_not_repeated(tmp_path, capsys):
+    from fontTools.feaLib.builder import addOpenTypeFeaturesFromString
+    from fontTools.ttLib import TTFont
+
+    for name in ("A.ttf", "B.ttf"):
+        path = _font(tmp_path / name)
+        font = TTFont(path)
+        addOpenTypeFeaturesFromString(font, "feature kern { lookupflag IgnoreMarks; pos f i -20; } kern;")
+        font.save(path)
+    run_pipeline(_ctx(tmp_path, dry_run=True), Steps(wrap=False, connect=False, aalt=False, sort=False))
+    out = capsys.readouterr().out
+    assert out.count("no GDEF glyph classes") == 1

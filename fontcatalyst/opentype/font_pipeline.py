@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import io
 from dataclasses import dataclass, field
-from typing import List
+from typing import Dict, List
 
 import FontCore.core_console_styles as cs
 from fontTools.ttLib import TTFont
@@ -46,6 +46,14 @@ class Tally:
     errors: int = 0
     verify_failed: int = 0
     blocked: List[str] = field(default_factory=list)
+    # warnings that hit hundreds of fonts, grouped instead of printed under each one: code -> font names
+    grouped: Dict[str, List[str]] = field(default_factory=dict)
+
+
+# structure-note code -> the line the summary prints
+GROUPED_WARNINGS = {
+    "no-glyph-classes": "font(s) have mark features or mark-filtering lookups but no GDEF glyph classes (marks may not attach)",
+}
 
 
 def _line(kind: str, text: str, *, dry: bool = False) -> None:
@@ -187,8 +195,10 @@ def _process_font(ctx: FlowContext, font_path, steps: Steps, tally: Tally, optio
             new_errors = len(after.errors) - len(before.errors)
             for finding in after.errors:
                 _line("error", f"verify: {finding.message}")
-            if ctx.verbose:
-                for finding in after.warnings:
+            for finding in after.warnings:
+                if finding.code in GROUPED_WARNINGS:
+                    tally.grouped.setdefault(finding.code, []).append(font_path.name)
+                elif ctx.verbose:
                     _line("warning", f"verify: {finding.message}")
             if after.errors:
                 failed_verify = True
@@ -240,6 +250,9 @@ def run_pipeline(ctx: FlowContext, steps: Steps) -> int:
     ).emit()
     if tally.blocked:
         _line("warning", f"{len(tally.blocked)} font(s) blocked from wrap or connect (see messages above)")
+    for code, names in tally.grouped.items():
+        shown = ", ".join(names[:5]) + (f" and {len(names) - 5} more" if len(names) > 5 else "")
+        _line("warning", f"{len(names)} {GROUPED_WARNINGS[code]}: {shown}")
     if tally.verify_failed:
         _line("error", f"verify found errors in {tally.verify_failed} font(s)")
     return 0 if tally.errors == 0 and tally.verify_failed == 0 else 1
