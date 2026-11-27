@@ -176,7 +176,13 @@ def merge_single_substitutions(
         return 0
 
     existing = ExistingSubstitutionExtractor(font).extract_all()["single"]
-    new_pairs = [(a, b) for a, b in pairs if (a, b) not in existing]
+    new_pairs = []
+    seen_inputs = set()
+    for a, b in pairs:
+        if (a, b) in existing or a in seen_inputs:  # one output per input: the first listed wins, never the last
+            continue
+        seen_inputs.add(a)
+        new_pairs.append((a, b))
     if not new_pairs:
         return 0
 

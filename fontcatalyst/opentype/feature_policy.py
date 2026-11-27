@@ -267,15 +267,18 @@ def naming_policy_tags() -> frozenset[str]:
 def detect_single_pairs(
     glyph_order: set[str], patterns: Tuple[str, ...]
 ) -> List[Tuple[str, str]]:
-    pairs: List[Tuple[str, str]] = []
+    """base -> variant pairs by naming suffix. A base gets one variant per feature (a feature maps an input to one
+    output). When several glyphs qualify (eight.onum and eight.osf), the suffix listed first in ``patterns`` wins,
+    then the glyph name, so the choice is the same on every run."""
+    best: dict[str, tuple[int, str]] = {}
     for glyph_name in sorted(glyph_order):
-        for pattern in patterns:
+        for rank, pattern in enumerate(patterns):
             if glyph_name.endswith(pattern):
                 base = glyph_name[: -len(pattern)]
-                if base in glyph_order:
-                    pairs.append((base, glyph_name))
-                    break
-    return pairs
+                if base in glyph_order and (base not in best or rank < best[base][0]):
+                    best[base] = (rank, glyph_name)
+                break
+    return sorted(((base, glyph) for base, (_rank, glyph) in best.items()), key=lambda p: p[1])
 
 
 def detect_frac_parts(

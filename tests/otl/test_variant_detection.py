@@ -40,3 +40,11 @@ def test_connect_writes_a_cv_feature():
     plan = build_connect_plan(audit, ConnectOptions())
     fea = render_connect_fea(audit, plan, font)
     assert "feature cv01 {" in fea and "sub a by a.cv01;" in fea
+
+
+def test_a_base_with_two_variants_gets_the_first_suffix_in_the_list():
+    from fontcatalyst.opentype.feature_policy import detect_single_pairs
+
+    names = {"one", "one.onum", "one.osf", "two", "two.osf"}
+    pairs = detect_single_pairs(names, (".onum", ".osf"))
+    assert sorted(pairs) == [("one", "one.onum"), ("two", "two.osf")]
