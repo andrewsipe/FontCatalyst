@@ -53,6 +53,8 @@ class Tally:
 # structure-note code -> the line the summary prints
 GROUPED_WARNINGS = {
     "no-glyph-classes": "font(s) have mark features or mark-filtering lookups but no GDEF glyph classes (marks may not attach)",
+    "gsub-unused-lookup": "font(s) have GSUB lookups no feature uses (they do nothing)",
+    "gpos-unused-lookup": "font(s) have GPOS lookups no feature uses (they do nothing)",
 }
 
 

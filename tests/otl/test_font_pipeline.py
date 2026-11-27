@@ -70,3 +70,23 @@ def test_the_gdef_class_warning_is_summarised_not_repeated(tmp_path, capsys):
     run_pipeline(_ctx(tmp_path, dry_run=True), Steps(wrap=False, connect=False, aalt=False, sort=False))
     out = " ".join(capsys.readouterr().out.split())  # the console wraps long lines
     assert out.count("no GDEF glyph classes") == 1
+
+
+def test_unused_lookups_are_summarised_not_repeated(tmp_path, capsys):
+    import copy
+
+    from fontTools.feaLib.builder import addOpenTypeFeaturesFromString
+    from fontTools.ttLib import TTFont
+
+    for name in ("A.ttf", "B.ttf"):
+        path = _font(tmp_path / name)
+        font = TTFont(path)
+        addOpenTypeFeaturesFromString(font, "feature ss01 { sub f by i; } ss01;")
+        lookups = font["GSUB"].table.LookupList
+        lookups.Lookup.append(copy.deepcopy(lookups.Lookup[0]))  # one no feature points at
+        lookups.LookupCount = len(lookups.Lookup)
+        font.save(path)
+    run_pipeline(_ctx(tmp_path, dry_run=True), Steps(wrap=False, connect=False, aalt=False, sort=False))
+    out = " ".join(capsys.readouterr().out.split())
+    assert out.count("GSUB lookups no feature uses") == 1
+    assert "lookup(s) no feature uses (index" not in out
