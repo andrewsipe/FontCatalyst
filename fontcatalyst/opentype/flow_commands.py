@@ -34,9 +34,32 @@ from .validation import FontValidator
 from .wrapper import WrapperExecutor, WrapperStrategyEngine
 
 
+def _progress(label: str, fonts):
+    """Yield each font while a one-line progress bar shows the count and the current name.
+
+    The scan and verify steps print one table at the end, so on a big folder they were silent for minutes."""
+    from rich.progress import BarColumn, MofNCompleteColumn, Progress, TextColumn, TimeElapsedColumn
+
+    fonts = list(fonts)
+    with Progress(
+        TextColumn("[bold]{task.description}"), BarColumn(), MofNCompleteColumn(), TimeElapsedColumn(),
+        TextColumn("{task.fields[name]}"), console=cs.get_console(), transient=True,
+    ) as bar:
+        task = bar.add_task(label, total=len(fonts), name="")
+        for font_path in fonts:
+            bar.update(task, name=font_path.name)
+            yield font_path
+            bar.advance(task)
+
+
+def _stage(ctx: FlowContext, number: int, total: int, title: str) -> None:
+    cs.emit("")
+    cs.StatusIndicator("info").add_message(f"Step {number} of {total}: {title}").emit()
+
+
 def _load_audits(ctx: FlowContext) -> List[FontFeatureAudit]:
     audits: List[FontFeatureAudit] = []
-    for font_path in ctx.resolved_fonts():
+    for font_path in _progress("Reading", ctx.resolved_fonts()):
         with TTFont(font_path, lazy=False) as font:
             audits.append(analyze_font(font, font_path))
     return audits
@@ -479,7 +502,7 @@ def cmd_verify(ctx: FlowContext, *, strict: bool = False) -> int:
     options = _connect_options(ctx)
     reports: List = []
 
-    for font_path in ctx.resolved_fonts():
+    for font_path in _progress("Verifying", ctx.resolved_fonts()):
         try:
             with TTFont(font_path, lazy=False) as font:
                 reports.append(verify_font(font, font_path, options=options))
@@ -523,16 +546,21 @@ def cmd_pipeline(
     no_verify: bool = False,
     no_sort: bool = False,
 ) -> int:
+    steps = [n for n, off in (("scan", False), ("wrap", no_wrap), ("connect", no_connect), ("aalt", no_aalt), ("verify", no_verify), ("sort", no_sort)) if not off]
+    total = len(steps)
+    _stage(ctx, 1, total, "scan: audit the installed features")
     rc = cmd_scan(ctx, write_report=False)
     if rc != 0:
         return rc
 
     if not no_wrap:
+        _stage(ctx, steps.index("wrap") + 1, total, "wrap: add missing scaffolding")
         rc = cmd_wrap(ctx)
         if rc != 0:
             return rc
 
     if not no_connect:
+        _stage(ctx, steps.index("connect") + 1, total, "connect: reconnect features to their glyphs")
         rc = cmd_connect(ctx, apply=False)
         if rc != 0:
             return rc
@@ -555,16 +583,19 @@ def cmd_pipeline(
                 return rc
 
     if not no_aalt:
+        _stage(ctx, steps.index("aalt") + 1, total, "aalt: build the aalt feature")
         rc = cmd_aalt(ctx, apply=not ctx.dry_run)
         if rc != 0:
             return rc
 
     if not no_verify:
+        _stage(ctx, steps.index("verify") + 1, total, "verify: check the result")
         rc = cmd_verify(ctx, strict=False)
         if rc != 0:
             return rc
 
     if not no_sort:
+        _stage(ctx, steps.index("sort") + 1, total, "sort: sort Coverage tables")
         rc = cmd_sort(ctx)
         if rc != 0:
             return rc
