@@ -92,3 +92,15 @@ def test_a_lookup_used_only_by_feature_variations_is_not_unused():
     fv.FeatureVariationCount = 1
     gsub.FeatureVariations = fv
     assert "gsub-unused-lookup" not in _codes(font)
+
+
+def test_routinely_empty_feature_records_are_not_reported():
+    import inspect
+
+    from fontcatalyst.opentype.models import InstalledFeatureDetail
+    from fontcatalyst.opentype.otl_inventory import empty_installed_tags
+
+    base = {k: (0 if "count" in k else (False if k == "populated" else "x")) for k in inspect.signature(InstalledFeatureDetail).parameters}
+    installed = {t: InstalledFeatureDetail(**{**base, "tag": t}) for t in ("rvrn", "rlig", "cpsp", "calt", "liga")}
+    assert empty_installed_tags(installed) == ["calt", "liga"]
+    assert "rvrn" in empty_installed_tags(installed, include_expected=True)

@@ -123,10 +123,20 @@ def tags_beyond_naming_policy(
     )
 
 
+# Feature records that are routinely empty and harmless: rvrn is filled by a variable font's FeatureVariations rather
+# than its own lookup list, and the others are placeholder records tools leave behind (cpsp, rclt, rlig, size).
+# Seen on hundreds of fonts in a 5,000-font run; none of them changes how a font behaves.
+EXPECTED_EMPTY_TAGS = frozenset({"rvrn", "rlig", "rclt", "cpsp", "size"})
+
+
 def empty_installed_tags(
     installed: Dict[str, InstalledFeatureDetail],
+    *,
+    include_expected: bool = False,
 ) -> List[str]:
-    """Feature records present but with no populated lookups."""
+    """Feature records present but with no populated lookups, leaving out the ones that are normally empty."""
     return sorted(
-        d.tag for d in installed.values() if d.lookup_count == 0 or not d.populated
+        d.tag
+        for d in installed.values()
+        if (d.lookup_count == 0 or not d.populated) and (include_expected or d.tag not in EXPECTED_EMPTY_TAGS)
     )

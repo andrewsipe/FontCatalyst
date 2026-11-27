@@ -19,6 +19,7 @@
 - `features pipeline`, `scan` and `verify` showed nothing while they read the fonts, which on a few thousand fonts looked like a hang. They now show a progress bar with the count and the current font, and the pipeline prints "Step N of M" before each step.
 
 ### Changed
+- `scan` and `verify` no longer report empty `rvrn`, `rlig`, `rclt`, `cpsp` and `size` feature records. They are routinely empty (rvrn is filled by the variable font's FeatureVariations) and were on hundreds of fonts in a 5,000-font run. Empty `calt`, `liga`, `case` and the rest are still reported.
 - `features` help now matches the other commands: a "Heads up" panel, examples, notes and exit status, with the same input / run / output / general groups on every subcommand.
 - `features --output-dir` is now `--report-dir`, since it only moves the `otl_reports` folders. `--output-dir` still works. `-n` is a short form of `--dry-run`.
 - `--backup` is no longer offered on `scan` and `verify`, which never change fonts.
