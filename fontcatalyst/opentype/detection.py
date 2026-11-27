@@ -92,7 +92,8 @@ class UnifiedGlyphDetector:
 
     def __init__(self, font: TTFont):
         self.font = font
-        self.glyph_order = set(font.getGlyphOrder())
+        self.glyph_order_list = list(font.getGlyphOrder())
+        self.glyph_order = set(self.glyph_order_list)
         self.best_cmap = font.getBestCmap() or {}
         self.inv_cmap = self._invert_cmap()
 
@@ -107,7 +108,7 @@ class UnifiedGlyphDetector:
         """Classify all glyphs in a single pass."""
         classifications = {}
 
-        for glyph_name in self.glyph_order:
+        for glyph_name in self.glyph_order_list:  # the font's own order, so the same font gives the same plan every run
             classification = GlyphClassification(name=glyph_name)
 
             # Check each pattern
@@ -205,7 +206,10 @@ class UnifiedGlyphDetector:
 
     def _parse_ligature_components(self, glyph_name: str) -> List[str]:
         """Parse ligature components with validation."""
-        base = glyph_name.split(".")[0]
+        base, _, suffix = glyph_name.partition(".")
+        if suffix and suffix.lower() not in ("liga", "dlig"):
+            # fl.ss07, fi.alt, f_f.001: a variant of a ligature belongs to its own feature, not to liga
+            return []
 
         for parser in (
             self._parse_underscore_ligature,
@@ -434,14 +438,21 @@ class UnifiedGlyphDetector:
             "titl": [],
         }
 
+        ligature_seen: Dict[str, Dict[tuple, int]] = {}
         for glyph_name, classification in classifications.items():
             if classification.is_ligature:
                 tier = ligature_tier_for_glyph(
                     glyph_name, tuple(classification.ligature_components)
                 )
-                features[tier].append(
-                    (classification.ligature_components, glyph_name)
-                )
+                comps = tuple(classification.ligature_components)
+                seen = ligature_seen.setdefault(tier, {})
+                if comps in seen:
+                    # fi and fi.liga both name the same sequence: keep the plain name (then the first in font order)
+                    if len(glyph_name) < len(features[tier][seen[comps]][1]):
+                        features[tier][seen[comps]] = (classification.ligature_components, glyph_name)
+                else:
+                    seen[comps] = len(features[tier])
+                    features[tier].append((classification.ligature_components, glyph_name))
 
             if classification.is_stylistic_alternate:
                 ss_num = classification.ss_number
