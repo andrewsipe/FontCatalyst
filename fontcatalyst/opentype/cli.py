@@ -84,10 +84,10 @@ HELP = {
         [],
     ),
     "pipeline": (
-        "Runs scan, wrap, connect, aalt, verify and sort in order, editing fonts in place.",
+        "Runs wrap, connect, aalt, sort and verify on each font in turn, editing fonts in place. Each font is read once, checked, and saved once before the next one starts.",
         (("Preview", "--dry-run"), ("Keep the originals", "--backup"), ("Leave a step out", "--no-wrap, --no-connect, --no-aalt, --no-verify, --no-sort")),
         [("fontcatalyst features pipeline fonts/ -r --backup -y", "the whole workflow")],
-        ["--include-low and --include-manual go to the connect step."],
+        ["--include-low and --include-manual go to the connect step.","A font is not saved if the changes would add verify errors. With --dry-run every step runs in memory and nothing is written but the .fea plans."],
     ),
 }
 

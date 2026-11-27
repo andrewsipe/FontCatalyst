@@ -266,7 +266,7 @@ class ExistingSubstitutionExtractor:
                     if hasattr(subtable, "ligatures"):
                         for first_glyph, lig_list in subtable.ligatures.items():
                             for lig in lig_list:
-                                components = tuple([first_glyph] + lig.Component)
+                                components = tuple([first_glyph] + list(lig.Component))
                                 result["ligatures"].add(components)
 
         return result

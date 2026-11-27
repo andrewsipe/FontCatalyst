@@ -245,7 +245,7 @@ class WrapperStrategyEngine:
                                 for first_glyph, lig_list in subtable.ligatures.items():
                                     for lig in lig_list:
                                         comp_tuple = tuple(
-                                            [first_glyph] + lig.Component
+                                            [first_glyph] + list(lig.Component)
                                         )
                                         components.add(comp_tuple)
         return components

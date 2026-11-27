@@ -52,11 +52,6 @@ def _progress(label: str, fonts):
             bar.advance(task)
 
 
-def _stage(ctx: FlowContext, number: int, total: int, title: str) -> None:
-    cs.emit("")
-    cs.StatusIndicator("info").add_message(f"Step {number} of {total}: {title}").emit()
-
-
 def _load_audits(ctx: FlowContext) -> List[FontFeatureAudit]:
     audits: List[FontFeatureAudit] = []
     for font_path in _progress("Reading", ctx.resolved_fonts()):
@@ -546,63 +541,13 @@ def cmd_pipeline(
     no_verify: bool = False,
     no_sort: bool = False,
 ) -> int:
-    steps = [n for n, off in (("scan", False), ("wrap", no_wrap), ("connect", no_connect), ("aalt", no_aalt), ("verify", no_verify), ("sort", no_sort)) if not off]
-    total = len(steps)
-    _stage(ctx, 1, total, "scan: audit the installed features")
-    rc = cmd_scan(ctx, write_report=False)
-    if rc != 0:
-        return rc
+    """Scan, wrap, connect, aalt, sort and verify, one font at a time (see font_pipeline)."""
+    from .font_pipeline import Steps, run_pipeline
 
-    if not no_wrap:
-        _stage(ctx, steps.index("wrap") + 1, total, "wrap: add missing scaffolding")
-        rc = cmd_wrap(ctx)
-        if rc != 0:
-            return rc
-
-    if not no_connect:
-        _stage(ctx, steps.index("connect") + 1, total, "connect: reconnect features to their glyphs")
-        rc = cmd_connect(ctx, apply=False)
-        if rc != 0:
-            return rc
-        if not ctx.dry_run:
-            apply_ctx = FlowContext(
-                paths=ctx.paths,
-                recursive=ctx.recursive,
-                dry_run=False,
-                verbose=ctx.verbose,
-                yes=ctx.yes,
-                output_dir=ctx.output_dir,
-                backup=ctx.backup,
-                connect_include_low=ctx.connect_include_low,
-                connect_include_manual=ctx.connect_include_manual,
-                font_files=ctx.font_files,
-                scan_root=ctx.scan_root,
-            )
-            rc = cmd_connect(apply_ctx, apply=True)
-            if rc != 0:
-                return rc
-
-    if not no_aalt:
-        _stage(ctx, steps.index("aalt") + 1, total, "aalt: build the aalt feature")
-        rc = cmd_aalt(ctx, apply=not ctx.dry_run)
-        if rc != 0:
-            return rc
-
-    if not no_verify:
-        _stage(ctx, steps.index("verify") + 1, total, "verify: check the result")
-        rc = cmd_verify(ctx, strict=False)
-        if rc != 0:
-            return rc
-
-    if not no_sort:
-        _stage(ctx, steps.index("sort") + 1, total, "sort: sort Coverage tables")
-        rc = cmd_sort(ctx)
-        if rc != 0:
-            return rc
-
-    cs.emit("")
-    cs.StatusIndicator("success").add_message("Pipeline complete").emit()
-    return 0
+    return run_pipeline(
+        ctx,
+        Steps(wrap=not no_wrap, connect=not no_connect, aalt=not no_aalt, verify=not no_verify, sort=not no_sort),
+    )
 
 
 def prepare_context(ctx: FlowContext) -> int:

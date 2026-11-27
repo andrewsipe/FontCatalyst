@@ -2,7 +2,11 @@
 
 ## [1.8.0] - 2026-11-27
 
+### Changed (pipeline)
+- `features pipeline` now works one font at a time: read once, audit, wrap, connect, aalt, sort, verify, save once, then the next font. Each font prints its own block. A font is not saved if the changes add verify errors. The separate `scan`, `wrap`, `connect`, `aalt`, `sort` and `verify` commands are unchanged.
+
 ### Fixed
+- `connect` failed with "can only concatenate list (not tuple) to list" on fonts with ligatures (UniversalSansDisplay Custom Variable Italic); fixed in the existing-ligature reader and in wrap.
 - `features pipeline`, `scan` and `verify` showed nothing while they read the fonts, which on a few thousand fonts looked like a hang. They now show a progress bar with the count and the current font, and the pipeline prints "Step N of M" before each step.
 
 ### Changed
